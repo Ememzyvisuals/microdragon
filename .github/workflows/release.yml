@@ -1,0 +1,255 @@
+name: Build, Release & Publish Microdragon
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 0.1.1)'
+        required: true
+        default: '0.1.0'
+
+env:
+  CARGO_TERM_COLOR: always
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # ── Build all 5 platform binaries ─────────────────────────────────────────
+  build:
+    name: Build ${{ matrix.artifact_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            artifact_name: microdragon-linux-x64
+            binary_path: core/target/x86_64-unknown-linux-gnu/release/microdragon
+
+          - os: ubuntu-24.04
+            target: aarch64-unknown-linux-gnu
+            artifact_name: microdragon-linux-arm64
+            binary_path: core/target/aarch64-unknown-linux-gnu/release/microdragon
+            cross: true
+
+          - os: macos-15
+            target: x86_64-apple-darwin
+            artifact_name: microdragon-macos-x64
+            binary_path: core/target/x86_64-apple-darwin/release/microdragon
+
+          - os: macos-15
+            target: aarch64-apple-darwin
+            artifact_name: microdragon-macos-arm64
+            binary_path: core/target/aarch64-apple-darwin/release/microdragon
+
+          - os: windows-2025
+            target: x86_64-pc-windows-msvc
+            artifact_name: microdragon-windows-x64.exe
+            binary_path: core/target/x86_64-pc-windows-msvc/release/microdragon.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install ARM64 cross tools (Linux only)
+        if: matrix.cross == true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          mkdir -p ~/.cargo
+          printf '[target.aarch64-unknown-linux-gnu]\nlinker = "aarch64-linux-gnu-gcc"\n' >> ~/.cargo/config.toml
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-registry-${{ hashFiles('core/Cargo.toml') }}
+          restore-keys: cargo-registry-
+
+      - name: Cache build target
+        uses: actions/cache@v4
+        with:
+          path: core/target
+          key: ${{ runner.os }}-${{ matrix.target }}-build-${{ hashFiles('core/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.target }}-build-
+
+      - name: Fetch dependencies
+        working-directory: core
+        run: cargo fetch
+
+      - name: Build binary
+        working-directory: core
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Strip binary (Unix)
+        if: runner.os != 'Windows'
+        run: strip ${{ matrix.binary_path }} || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.binary_path }}
+          retention-days: 7
+
+  # ── Create GitHub Release ─────────────────────────────────────────────────
+  release:
+    name: Create Release
+    runs-on: ubuntu-24.04
+    needs: build
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: ver
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            V="${GITHUB_REF#refs/tags/v}"
+          else
+            V="${{ github.event.inputs.version }}"
+          fi
+          echo "version=${V}" >> $GITHUB_OUTPUT
+          echo "tag=v${V}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./binaries
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          cp binaries/microdragon-linux-x64/microdragon         release/microdragon-linux-x64
+          cp binaries/microdragon-linux-arm64/microdragon        release/microdragon-linux-arm64
+          cp binaries/microdragon-macos-x64/microdragon          release/microdragon-macos-x64
+          cp binaries/microdragon-macos-arm64/microdragon        release/microdragon-macos-arm64
+          cp "binaries/microdragon-windows-x64.exe/microdragon.exe" release/microdragon-windows-x64.exe
+          chmod +x release/microdragon-linux-x64
+          chmod +x release/microdragon-linux-arm64
+          chmod +x release/microdragon-macos-x64
+          chmod +x release/microdragon-macos-arm64
+          cd release && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: "🐉 Microdragon ${{ steps.ver.outputs.tag }}"
+          prerelease: ${{ contains(steps.ver.outputs.version, 'beta') || contains(steps.ver.outputs.version, 'alpha') }}
+          body: |
+            ## 🐉 Microdragon ${{ steps.ver.outputs.tag }}
+
+            **Distributed Intelligence Network Operating as Cognitive Local Autonomous Worker**
+            By [EMEMZYVISUALS DIGITALS](https://ememzyvisuals.com) — Emmanuel Ariyo
+
+            ### Quick Install
+            ```bash
+            npm install -g @ememzyvisuals/microdragon
+            microdragon setup
+            microdragon
+            ```
+
+            ### Direct Binary Download
+            | Platform | Binary |
+            |---|---|
+            | Linux x64 | `microdragon-linux-x64` |
+            | Linux ARM64 | `microdragon-linux-arm64` |
+            | macOS Intel | `microdragon-macos-x64` |
+            | macOS Apple Silicon (M1/M2/M3) | `microdragon-macos-arm64` |
+            | Windows x64 | `microdragon-windows-x64.exe` |
+
+            ### Verify checksum
+            ```bash
+            sha256sum -c SHA256SUMS.txt
+            ```
+
+            ---
+            Questions → [@ememzyvisuals on X](https://x.com/ememzyvisuals)
+          files: |
+            release/microdragon-linux-x64
+            release/microdragon-linux-arm64
+            release/microdragon-macos-x64
+            release/microdragon-macos-arm64
+            release/microdragon-windows-x64.exe
+            release/SHA256SUMS.txt
+
+  # ── Publish to npm ────────────────────────────────────────────────────────
+  publish-npm:
+    name: Publish to npm
+    runs-on: ubuntu-24.04
+    needs: release
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@ememzyvisuals'
+
+      - name: Get version
+        id: ver
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            V="${GITHUB_REF#refs/tags/v}"
+          else
+            V="${{ github.event.inputs.version }}"
+          fi
+          echo "version=${V}" >> $GITHUB_OUTPUT
+
+      - name: Download all binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: ./binaries
+
+      - name: Prepare npm package
+        run: |
+          cd npm
+          npm version ${{ steps.ver.outputs.version }} --no-git-tag-version --allow-same-version || true
+          mkdir -p bin
+          cp ../binaries/microdragon-linux-x64/microdragon         bin/microdragon-linux-x64
+          cp ../binaries/microdragon-linux-arm64/microdragon        bin/microdragon-linux-arm64
+          cp ../binaries/microdragon-macos-x64/microdragon          bin/microdragon-macos-x64
+          cp ../binaries/microdragon-macos-arm64/microdragon        bin/microdragon-macos-arm64
+          cp "../binaries/microdragon-windows-x64.exe/microdragon.exe" bin/microdragon-windows-x64.exe
+          chmod +x bin/microdragon-linux-x64 bin/microdragon-linux-arm64
+          chmod +x bin/microdragon-macos-x64 bin/microdragon-macos-arm64
+          chmod +x bin/microdragon.js
+          cp ../requirements.txt . && cp ../README.md . && cp ../LICENSE .
+
+      - name: Verify package
+        working-directory: npm
+        run: npm pack --dry-run
+
+      - name: Publish
+        working-directory: npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Confirm live
+        run: |
+          sleep 20
+          npm view @ememzyvisuals/microdragon@${{ steps.ver.outputs.version }} || true
