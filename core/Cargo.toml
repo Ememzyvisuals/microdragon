@@ -1,0 +1,97 @@
+[package]
+name = "microdragon-core"
+version = "0.1.1"
+edition = "2021"
+authors = ["Emmanuel Ariyo <ememzyvisuals@gmail.com>"]
+description = "🐉 Microdragon — Distributed Intelligence Network Operating as Cognitive Local Autonomous Worker"
+license = "MIT"
+repository = "https://github.com/ememzyvisuals/microdragon"
+rust-version = "1.75"
+keywords = ["ai", "agent", "cli", "llm", "autonomous"]
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "microdragon"
+path = "src/main.rs"
+
+[dependencies]
+# ── Async runtime ────────────────────────────────────────────────────────────
+tokio           = { version = "1",    features = ["full"] }
+tokio-util      = { version = "0.7",  features = ["codec", "io"] }
+
+# ── HTTP — rustls = pure Rust TLS, works on ALL platforms without OpenSSL ───
+reqwest         = { version = "0.12", default-features = false,
+                    features = ["json", "rustls-tls", "stream", "gzip", "multipart"] }
+axum            = { version = "0.7",  features = ["json", "tokio", "http1"] }
+tower           = { version = "0.4",  features = ["full"] }
+tower-http      = { version = "0.5",  features = ["cors", "trace", "compression-full"] }
+hyper           = { version = "1",    features = ["full"] }
+
+# ── TUI — ratatui 0.29 + crossterm 0.28 (verified compatible combo) ─────────
+ratatui         = { version = "0.29" }
+crossterm       = { version = "0.28", features = ["serde", "event-stream"] }
+color-eyre      = { version = "0.6" }
+
+# ── Serialization ────────────────────────────────────────────────────────────
+serde           = { version = "1",   features = ["derive"] }
+serde_json      = { version = "1" }
+toml            = { version = "0.8" }
+
+# ── CLI ──────────────────────────────────────────────────────────────────────
+clap            = { version = "4",   features = ["derive", "env", "unicode", "wrap_help"] }
+rustyline       = { version = "14" }
+
+# ── Database (bundled = no system SQLite needed on any platform) ─────────────
+rusqlite        = { version = "0.31", features = ["bundled", "chrono", "serde_json"] }
+
+# ── Cryptography (pure Rust — zero C dependencies, works everywhere) ─────────
+aes-gcm         = { version = "0.10" }
+rand            = { version = "0.8" }
+base64          = { version = "0.22" }
+sha2            = { version = "0.10" }
+hmac            = { version = "0.12" }
+uuid            = { version = "1",   features = ["v4", "serde"] }
+
+# ── Time ─────────────────────────────────────────────────────────────────────
+chrono          = { version = "0.4",  features = ["serde"] }
+
+# ── Logging ──────────────────────────────────────────────────────────────────
+tracing             = { version = "0.1" }
+tracing-subscriber  = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+tracing-appender    = { version = "0.2" }
+
+# ── Utilities ────────────────────────────────────────────────────────────────
+anyhow          = { version = "1" }
+thiserror       = { version = "1" }
+once_cell       = { version = "1" }
+dashmap         = { version = "6" }
+futures         = { version = "0.3" }
+async-trait     = { version = "0.1" }
+bytes           = { version = "1" }
+regex           = { version = "1" }
+fnv             = { version = "1" }
+
+# ── System ───────────────────────────────────────────────────────────────────
+dirs            = { version = "5" }
+which           = { version = "6" }
+
+# ── gRPC / protobuf (for daemon mode) ────────────────────────────────────────
+tonic           = { version = "0.11", features = ["transport", "channel"] }
+prost           = { version = "0.12" }
+
+[build-dependencies]
+tonic-build     = { version = "0.11" }
+
+[profile.release]
+opt-level       = 3
+lto             = "thin"
+codegen-units   = 16
+panic           = "abort"
+strip           = true
+
+[profile.dev]
+opt-level       = 1
+debug           = true
+
+[profile.release.package."*"]
+opt-level       = 3
