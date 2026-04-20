@@ -1,5 +1,5 @@
 // microdragon-core/src/cli/terminal/mod.rs
-// Terminal Capability Detection System — Windows CMD + cross-platform
+// Terminal capability detection — cross-platform (Windows CMD, macOS, Linux)
 
 pub mod caps;
 pub mod platform;
@@ -45,14 +45,14 @@ pub fn supports_cursor() -> bool {
     caps().cursor_movement
 }
 
-/// Force simple/plain output mode (pipe, script, minimal terminal)
+/// Force simple/plain output mode
+/// Call before first use — has no effect after init()
 pub fn force_simple() {
-    // Re-init with forced simple level — only works before first init
-    // After init, the caps are frozen; callers should check is_pipe()
-
-// Convenient global caps accessor used like: CAPS.unicode, CAPS.ansi_color
-
+    // No-op stub — caps are frozen after first detection.
+    // Pipe/redirect detection in TermCaps::detect() handles this automatically.
+}
 
 /// Lazily-initialised global terminal caps — use via CAPS.field_name
 /// e.g.  if terminal::CAPS.ansi_color { ... }
-pub static CAPS: once_cell::sync::Lazy<TermCaps> = once_cell::sync::Lazy::new(TermCaps::detect);
+pub static CAPS: once_cell::sync::Lazy<TermCaps> =
+    once_cell::sync::Lazy::new(TermCaps::detect);
