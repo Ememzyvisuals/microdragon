@@ -1,0 +1,17 @@
+{
+  "name": "microdragon-social-bridge",
+  "version": "0.1.0",
+  "description": "MICRODRAGON WhatsApp/Telegram/Discord social bridge",
+  "private": true,
+  "scripts": {
+    "whatsapp": "node whatsapp_bridge.js",
+    "start": "node whatsapp_bridge.js"
+  },
+  "dependencies": {
+    "whatsapp-web.js": "^1.23.0",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

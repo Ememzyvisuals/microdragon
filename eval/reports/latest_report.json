@@ -1,0 +1,795 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-10T19:04:21.774661",
+  "microdragon_version": "0.1.0-beta",
+  "categories": [
+    {
+      "name": "Architecture",
+      "tests": [
+        {
+          "test_id": "ARCH-001",
+          "category": "Architecture",
+          "description": "Rust module files complete",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 6 module files exist with correct declarations",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 1.9812583923339844
+        },
+        {
+          "test_id": "ARCH-002",
+          "category": "Architecture",
+          "description": "main.rs wires all subsystems",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "main.rs correctly wires all subsystems",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.20813941955566406
+        },
+        {
+          "test_id": "ARCH-003",
+          "category": "Architecture",
+          "description": "MicrodragonEngine interface complete",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "MicrodragonEngine exposes complete interface",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2181529998779297
+        },
+        {
+          "test_id": "ARCH-004",
+          "category": "Architecture",
+          "description": "Cargo.toml dependency completeness",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 15 critical deps present",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.21147727966308594
+        },
+        {
+          "test_id": "ARCH-005",
+          "category": "Architecture",
+          "description": "Python syntax across all modules",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 20 Python files parse cleanly",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 114.91727828979492
+        },
+        {
+          "test_id": "ARCH-006",
+          "category": "Architecture",
+          "description": "MicrodragonCli type signature",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "MicrodragonCli::new has correct signature",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.4661083221435547
+        },
+        {
+          "test_id": "ARCH-007",
+          "category": "Architecture",
+          "description": "Rust brace balance check",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All Rust files have balanced braces",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 13.7939453125
+        }
+      ],
+      "pass_count": 7,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "Security",
+      "tests": [
+        {
+          "test_id": "SEC-001",
+          "category": "Security",
+          "description": "Prompt injection guard coverage",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Injection guard covers 6/6 attack patterns",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.4119873046875
+        },
+        {
+          "test_id": "SEC-002",
+          "category": "Security",
+          "description": "Sandbox blocks dangerous commands",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Sandbox blocks 6/6 dangerous patterns",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.22292137145996094
+        },
+        {
+          "test_id": "SEC-003",
+          "category": "Security",
+          "description": "AES-256-GCM encryption implementation",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "AES-256-GCM encryption fully implemented",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2460479736328125
+        },
+        {
+          "test_id": "SEC-004",
+          "category": "Security",
+          "description": "Email mandatory confirmation gate",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Email has mandatory user_confirmed gate",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.9996891021728516
+        },
+        {
+          "test_id": "SEC-005",
+          "category": "Security",
+          "description": "Audit log implementation",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Audit logging implemented",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3001689910888672
+        },
+        {
+          "test_id": "SEC-006",
+          "category": "Security",
+          "description": "Skill security scanning",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Skill scanner has 7 security patterns",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 27.568578720092773
+        }
+      ],
+      "pass_count": 6,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "Pipeline",
+      "tests": [
+        {
+          "test_id": "PIPE-001",
+          "category": "Pipeline",
+          "description": "All 9 phases defined",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 9 pipeline phases defined",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.41365623474121094
+        },
+        {
+          "test_id": "PIPE-002",
+          "category": "Pipeline",
+          "description": "SIMULATE precedes EXECUTE",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "SIMULATE precedes EXECUTE in pipeline",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.42319297790527344
+        },
+        {
+          "test_id": "PIPE-003",
+          "category": "Pipeline",
+          "description": "Token guard and loop detection",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "TokenGuard fully implemented with loop detection",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2543926239013672
+        },
+        {
+          "test_id": "PIPE-004",
+          "category": "Pipeline",
+          "description": "Reliability engine retry logic",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Reliability engine with retry logic present",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.24366378784179688
+        },
+        {
+          "test_id": "PIPE-005",
+          "category": "Pipeline",
+          "description": "Dual execution modes (Command/Autonomous)",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Both Command and Autonomous modes defined",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3685951232910156
+        }
+      ],
+      "pass_count": 5,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "Agents",
+      "tests": [
+        {
+          "test_id": "AGENT-001",
+          "category": "Agents",
+          "description": "All 7 specialist agents defined",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 7 specialist agents defined",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.30231475830078125
+        },
+        {
+          "test_id": "AGENT-002",
+          "category": "Agents",
+          "description": "Intent routing keyword coverage",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Agent routing covers 7 keyword categories",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.6697177886962891
+        },
+        {
+          "test_id": "AGENT-003",
+          "category": "Agents",
+          "description": "System prompts per agent",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 6 agent system prompts defined",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2808570861816406
+        },
+        {
+          "test_id": "AGENT-004",
+          "category": "Agents",
+          "description": "Simple Mode goal flow classification",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 10 goal flows in Simple Mode",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3254413604736328
+        }
+      ],
+      "pass_count": 4,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "Memory",
+      "tests": [
+        {
+          "test_id": "MEM-001",
+          "category": "Memory",
+          "description": "SQLite schema completeness",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 7 SQLite tables defined",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2796649932861328
+        },
+        {
+          "test_id": "MEM-002",
+          "category": "Memory",
+          "description": "Vector memory with semantic search",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Vector memory with cosine similarity complete",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.23102760314941406
+        },
+        {
+          "test_id": "MEM-003",
+          "category": "Memory",
+          "description": "Memory wired to engine with RwLock",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Memory fully wired to engine with RwLock",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.4634857177734375
+        },
+        {
+          "test_id": "MEM-004",
+          "category": "Memory",
+          "description": "SQLite WAL mode for performance",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "SQLite WAL mode enabled for performance",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.24628639221191406
+        }
+      ],
+      "pass_count": 4,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "Cost",
+      "tests": [
+        {
+          "test_id": "COST-001",
+          "category": "Cost",
+          "description": "Smart model routing logic",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Smart routing with local/cheap preference complete",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2579689025878906
+        },
+        {
+          "test_id": "COST-002",
+          "category": "Cost",
+          "description": "Daily budget cap",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Daily budget cap with Exceeded status",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2658367156982422
+        },
+        {
+          "test_id": "COST-003",
+          "category": "Cost",
+          "description": "Prompt compression implementation",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Prompt compression removes whitespace/fillers",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.5280971527099609
+        },
+        {
+          "test_id": "COST-004",
+          "category": "Cost",
+          "description": "Provider cost table completeness",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Cost table covers all 4 providers",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.27680397033691406
+        }
+      ],
+      "pass_count": 4,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "SelfDebug",
+      "tests": [
+        {
+          "test_id": "DEBUG-001",
+          "category": "SelfDebug",
+          "description": "SelfDebugEngine class complete",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "SelfDebugEngine fully implemented",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.5576610565185547
+        },
+        {
+          "test_id": "DEBUG-002",
+          "category": "SelfDebug",
+          "description": "Auto-fix error type coverage",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Auto-fix covers 6/6 Python error types",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 1.8227100372314453
+        },
+        {
+          "test_id": "DEBUG-003",
+          "category": "SelfDebug",
+          "description": "Multi-language self-debug",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Self-debug supports ['python', 'javascript', 'node', 'rust']",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 1.108407974243164
+        },
+        {
+          "test_id": "DEBUG-004",
+          "category": "SelfDebug",
+          "description": "Iteration cap prevents infinite loop",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "max_iterations cap prevents infinite loops",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3509521484375
+        }
+      ],
+      "pass_count": 4,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "Gaming",
+      "tests": [
+        {
+          "test_id": "GAME-001",
+          "category": "Gaming",
+          "description": "Core game engine structure",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Game engine has all 7 core classes",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.30612945556640625
+        },
+        {
+          "test_id": "GAME-002",
+          "category": "Gaming",
+          "description": "All 4 game strategy implementations",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 4 game strategy classes implemented",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2808570861816406
+        },
+        {
+          "test_id": "GAME-003",
+          "category": "Gaming",
+          "description": "Computer vision analysis techniques",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Vision analysis: 7/7 techniques",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2777576446533203
+        },
+        {
+          "test_id": "GAME-004",
+          "category": "Gaming",
+          "description": "Per-game vision (GTA/NFS/MK)",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Per-game vision: GTA, NFS, MK all implemented",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3364086151123047
+        },
+        {
+          "test_id": "GAME-005",
+          "category": "Gaming",
+          "description": "Mortal Kombat combo library",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "MK combo library: 6/7 components",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.25653839111328125
+        },
+        {
+          "test_id": "GAME-006",
+          "category": "Gaming",
+          "description": "PID steering controller for racing",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "PID controller for lane-keeping present",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3261566162109375
+        }
+      ],
+      "pass_count": 6,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "Training",
+      "tests": [
+        {
+          "test_id": "TRAIN-001",
+          "category": "Training",
+          "description": "Training provider classes",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 3 training providers + dataset builder",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2849102020263672
+        },
+        {
+          "test_id": "TRAIN-002",
+          "category": "Training",
+          "description": "LoRA/QLoRA local fine-tuning",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "LoRA/QLoRA with 7/7 components",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2942085266113281
+        },
+        {
+          "test_id": "TRAIN-003",
+          "category": "Training",
+          "description": "Dataset builder source methods",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "DatasetBuilder has 5 source methods",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2562999725341797
+        },
+        {
+          "test_id": "TRAIN-004",
+          "category": "Training",
+          "description": "Product strategist engine",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Product strategist: PRD + market + roadmap",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3960132598876953
+        }
+      ],
+      "pass_count": 4,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "Social",
+      "tests": [
+        {
+          "test_id": "SOCIAL-001",
+          "category": "Social",
+          "description": "Telegram bot implementation",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Telegram bot implemented and parses",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 2.1932125091552734
+        },
+        {
+          "test_id": "SOCIAL-002",
+          "category": "Social",
+          "description": "Discord bot implementation",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Discord bot implemented",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 1.8949508666992188
+        },
+        {
+          "test_id": "SOCIAL-003",
+          "category": "Social",
+          "description": "WhatsApp bridge with QR auth",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "WhatsApp bridge with QR auth and context memory",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.5826950073242188
+        },
+        {
+          "test_id": "SOCIAL-004",
+          "category": "Social",
+          "description": "API server social bridge",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "API server bridges social \u2192 engine",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3294944763183594
+        }
+      ],
+      "pass_count": 4,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "CI/CD",
+      "tests": [
+        {
+          "test_id": "CICD-001",
+          "category": "CI/CD",
+          "description": "Release workflow completeness",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Release workflow: 5 platforms + npm publish",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.29778480529785156
+        },
+        {
+          "test_id": "CICD-002",
+          "category": "CI/CD",
+          "description": "CI workflow Rust + Python checks",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "CI runs Rust tests + fmt + clippy + Python",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3292560577392578
+        },
+        {
+          "test_id": "CICD-003",
+          "category": "CI/CD",
+          "description": "npm package.json validity",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "@ememzyvisuals/microdragon package.json complete",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.30803680419921875
+        }
+      ],
+      "pass_count": 3,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "UX",
+      "tests": [
+        {
+          "test_id": "UX-001",
+          "category": "UX",
+          "description": "First launch consent and policy",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "First launch: consent + beta + policy + X CTA",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.31828880310058594
+        },
+        {
+          "test_id": "UX-002",
+          "category": "UX",
+          "description": "Simple Mode conversational interface",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Simple Mode: conversational + goal flow + pro switch",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.30303001403808594
+        },
+        {
+          "test_id": "UX-003",
+          "category": "UX",
+          "description": "Windows CMD safety fallback",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Windows CMD detected with plain text fallback",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3390312194824219
+        },
+        {
+          "test_id": "UX-004",
+          "category": "UX",
+          "description": "Brand attribution in README",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Full attribution: name, brand, X handle, acronym",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.24318695068359375
+        }
+      ],
+      "pass_count": 4,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    },
+    {
+      "name": "LongHorizon",
+      "tests": [
+        {
+          "test_id": "HORIZON-001",
+          "category": "LongHorizon",
+          "description": "Background watch daemon",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Watch daemon: background monitoring + alerts",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.2620220184326172
+        },
+        {
+          "test_id": "HORIZON-002",
+          "category": "LongHorizon",
+          "description": "Self-improvement learning loop",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Self-improvement ledger with failure learning",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3292560577392578
+        },
+        {
+          "test_id": "HORIZON-003",
+          "category": "LongHorizon",
+          "description": "Cron-based task scheduler",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Autonomous scheduler with cron tasks",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3063678741455078
+        },
+        {
+          "test_id": "HORIZON-004",
+          "category": "LongHorizon",
+          "description": "Performance metrics system",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Performance metrics: success/latency/satisfaction",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.3631114959716797
+        },
+        {
+          "test_id": "HORIZON-005",
+          "category": "LongHorizon",
+          "description": "Multi-step goal composition",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "Multi-step: clarify \u2192 preview \u2192 combine \u2192 execute",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.335693359375
+        }
+      ],
+      "pass_count": 5,
+      "warn_count": 0,
+      "fail_count": 0,
+      "score": 1.0
+    }
+  ],
+  "overall_score": 1.0,
+  "task_success_rate": 1.0,
+  "tool_reliability": 1.0,
+  "hallucination_rate": 0.0,
+  "long_horizon_rate": 1.0,
+  "total_tests": 60,
+  "passed": 60,
+  "warned": 0,
+  "failed": 0,
+  "failure_patterns": [],
+  "fixes_applied": []
+}

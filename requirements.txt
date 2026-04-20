@@ -1,0 +1,117 @@
+# NEXA Universal AI Agent — Python Dependencies
+# © 2026 EMEMZYVISUALS DIGITALS — Emmanuel Ariyo, Founder & CEO
+# Install: pip install -r requirements.txt
+
+# ── Core async HTTP ────────────────────────────────────────────────────────────
+aiohttp>=3.9.0
+aiofiles>=23.2.1
+httpx>=0.25.0
+
+# ── Web automation (browser control) ──────────────────────────────────────────
+playwright>=1.40.0
+selenium>=4.15.0
+
+# ── Desktop automation ─────────────────────────────────────────────────────────
+pyautogui>=0.9.54
+# pygetwindow>=0.0.9     # Window management (Windows/macOS)
+# pynput>=1.7.6          # Low-level keyboard/mouse
+
+# ── Image processing ────────────────────────────────────────────────────────────
+Pillow>=10.0.0
+opencv-python-headless>=4.8.0
+
+# ── Voice / Audio ───────────────────────────────────────────────────────────────
+# faster-whisper>=0.10.0  # Local Whisper STT (optional, recommended)
+# PyAudio>=0.2.14         # Microphone input
+# pydub>=0.25.5           # Audio manipulation
+# elevenlabs>=0.2.0       # ElevenLabs TTS (optional)
+
+# ── Document processing ─────────────────────────────────────────────────────────
+pdfplumber>=0.10.0
+PyPDF2>=3.0.0
+python-docx>=1.1.0
+openpyxl>=3.1.0
+python-pptx>=0.6.23
+
+# ── Research / Web scraping ──────────────────────────────────────────────────────
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+trafilatura>=1.6.0
+html2text>=2020.1.16
+
+# ── Data analysis ───────────────────────────────────────────────────────────────
+pandas>=2.1.0
+numpy>=1.24.0
+tabulate>=0.9.0
+
+# ── Business / Finance ──────────────────────────────────────────────────────────
+yfinance>=0.2.33
+ta>=0.10.0              # Technical analysis indicators
+
+# ── AI / ML providers ───────────────────────────────────────────────────────────
+anthropic>=0.20.0
+openai>=1.3.0
+groq>=0.5.0
+tiktoken>=0.5.0
+
+# ── Social platforms ────────────────────────────────────────────────────────────
+# telegram bots via long-polling (no extra dep needed, uses aiohttp)
+discord.py>=2.3.0
+# websockets>=12.0       # For custom WebSocket connections
+
+# ── Email ────────────────────────────────────────────────────────────────────────
+# imaplib + smtplib are stdlib — no extra deps needed
+# google-auth-oauthlib>=1.1.0   # For Gmail OAuth2 (optional)
+# google-api-python-client>=2.0  # For Google Calendar (optional)
+
+# ── GitHub integration ───────────────────────────────────────────────────────────
+# PyGithub>=2.1.0        # Optional GitHub SDK (we use REST API directly)
+
+# ── Utilities ────────────────────────────────────────────────────────────────────
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+rich>=13.7.0             # Beautiful terminal output for Python modules
+typer>=0.9.0             # Python CLI framework for module scripts
+structlog>=23.2.0
+click>=8.1.0
+
+# ── Security ─────────────────────────────────────────────────────────────────────
+cryptography>=41.0.0
+
+# ── Cost optimization ─────────────────────────────────────────────────────────────
+# tiktoken — already listed above, used for token counting before API calls
+# cachetools>=5.3.0      # Response caching to reduce API calls
+
+# ── Low-cost / free providers ────────────────────────────────────────────────────
+# ollama>=0.1.0          # Local model client (no API cost, optional)
+
+
+# ── Gaming module ─────────────────────────────────────────────────────────────
+mss>=9.0.0                  # Fast screen capture (30fps)
+pynput>=1.7.6               # Keyboard + mouse input
+# vgamepad>=0.1.0           # Virtual gamepad - Windows only
+# pytesseract>=0.3.10       # OCR for reading game text (optional)
+
+# ── Image / Video generation ──────────────────────────────────────────────────
+aiohttp>=3.9.0              # Async HTTP for all API calls
+# Dependencies auto-detected by provider:
+# openai>=1.10.0            # For DALL-E 3 + Sora (OPENAI_API_KEY)
+# google-generativeai>=0.5  # For Imagen 3 + Veo 2 (GEMINI_API_KEY)
+# huggingface_hub>=0.20.0   # For FLUX.1-dev (HUGGINGFACE_TOKEN)
+# fal-client>=0.4.0         # For Fal.ai (FAL_KEY)
+# stability-sdk>=0.8.0      # For Stability AI (STABILITY_API_KEY)
+
+# ── Presentation engine ───────────────────────────────────────────────────────
+# SVG rendering uses stdlib only (xml, pathlib) — no extra deps needed
+# PDF export (optional): weasyprint>=60.0 or reportlab>=4.0.0
+
+# ── Web design ────────────────────────────────────────────────────────────────
+# HTML generation is pure Python — no extra deps
+# Browser preview: playwright already listed above
+
+# ── Advertising pipeline ─────────────────────────────────────────────────────
+# Uses aiohttp (already listed) + existing AI providers
+
+# ── Skill registry ────────────────────────────────────────────────────────────
+# Dynamic skill loading uses importlib (stdlib) — no extra deps
+# Git clone for skill install: git CLI (system)
