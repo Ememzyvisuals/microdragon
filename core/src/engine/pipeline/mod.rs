@@ -260,7 +260,6 @@ impl Pipeline {
     pub fn current_mode(&self) -> &ExecutionMode {
         &self.mode
     }
-}
 
 /// Simple MD5-like hash for loop detection (not cryptographic)
 fn md5_simple(s: &str) -> u64 {
