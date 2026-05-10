@@ -9,8 +9,8 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-const VERSION = "0.1.0";
-const GITHUB_RELEASES = "https://github.com/ememzyvisuals/microdragon/releases/download";
+const VERSION = require("../package.json").version;
+const GITHUB_RELEASES = "https://github.com/Ememzyvisuals/microdragon/releases/download";
 
 // ─── Platform detection ───────────────────────────────────────────────────────
 
@@ -94,31 +94,30 @@ async function main() {
 
 async function downloadBinary(target, destPath) {
   const url = `${GITHUB_RELEASES}/v${VERSION}/${target}`;
-  return new Promise((resolve) => {
-    const tmpPath = destPath + ".tmp";
-    const file = fs.createWriteStream(tmpPath);
-    const request = https.get(url, { followRedirects: true }, (res) => {
-      if (res.statusCode === 302 || res.statusCode === 301) {
-        file.close();
-        // Follow redirect
-        https.get(res.headers.location, (res2) => {
-          if (res2.statusCode !== 200) { fs.unlinkSync(tmpPath); resolve(false); return; }
-          res2.pipe(file);
-          file.on("finish", () => {
-            file.close();
-            fs.renameSync(tmpPath, destPath);
-            resolve(true);
-          });
-        }).on("error", () => { fs.unlinkSync(tmpPath); resolve(false); });
-        return;
-      }
-      if (res.statusCode !== 200) { file.close(); fs.unlinkSync(tmpPath); resolve(false); return; }
-      res.pipe(file);
-      file.on("finish", () => { file.close(); fs.renameSync(tmpPath, destPath); resolve(true); });
+
+  function fetchFollowRedirects(url, redirects = 5) {
+    return new Promise((resolve) => {
+      if (redirects === 0) return resolve(false);
+      https.get(url, (res) => {
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          return resolve(fetchFollowRedirects(res.headers.location, redirects - 1));
+        }
+        if (res.statusCode !== 200) return resolve(false);
+        const tmpPath = destPath + ".tmp";
+        const file = fs.createWriteStream(tmpPath);
+        res.pipe(file);
+        file.on("finish", () => {
+          file.close();
+          fs.renameSync(tmpPath, destPath);
+          resolve(true);
+        });
+        file.on("error", () => { try { fs.unlinkSync(tmpPath); } catch {} resolve(false); });
+      }).on("error", () => resolve(false))
+        .setTimeout(60000, function() { this.destroy(); resolve(false); });
     });
-    request.on("error", () => { try { fs.unlinkSync(tmpPath); } catch {} resolve(false); });
-    request.setTimeout(30000, () => { request.destroy(); resolve(false); });
-  });
+  }
+
+  return fetchFollowRedirects(url);
 }
 
 function buildFromSource(binaryPath) {
