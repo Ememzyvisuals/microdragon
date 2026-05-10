@@ -1,0 +1,80 @@
+name: CI — Microdragon
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: Check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            core/target
+          key: ${{ runner.os }}-cargo-check-${{ hashFiles('core/Cargo.toml') }}
+          restore-keys: ${{ runner.os }}-cargo-check-
+
+      # cargo check = verify it compiles. Faster than cargo test.
+      # cargo test requires running binaries which needs full env setup.
+      - name: Check compilation
+        working-directory: core
+        run: cargo check
+
+      - name: Python syntax check
+        shell: bash
+        run: |
+          python3 -c "
+          import ast, os, sys
+          errors = []
+          for root, dirs, files in os.walk('modules'):
+              dirs[:] = [d for d in dirs if d not in ['__pycache__','node_modules']]
+              for fn in files:
+                  if not fn.endswith('.py'): continue
+                  path = os.path.join(root, fn)
+                  try:
+                      ast.parse(open(path, errors='replace').read())
+                  except SyntaxError as e:
+                      errors.append(f'{path}:{e.lineno}: {e.msg}')
+          if errors:
+              print('Python syntax errors:')
+              for e in errors: print(' ', e)
+              sys.exit(1)
+          print(f'Python check passed')
+          "
+
+      - name: npm package check
+        working-directory: npm
+        run: |
+          node -e "
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('package.json'));
+          if (!p.bin || !p.bin.microdragon) {
+            console.error('ERROR: bin.microdragon missing');
+            process.exit(1);
+          }
+          if (!fs.existsSync('bin/microdragon.js')) {
+            console.error('ERROR: bin/microdragon.js missing');
+            process.exit(1);
+          }
+          console.log('npm package check passed');
+          "
