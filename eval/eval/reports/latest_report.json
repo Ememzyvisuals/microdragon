@@ -1,0 +1,868 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-10T19:03:34.619164",
+  "microdragon_version": "0.1.0-beta",
+  "categories": [
+    {
+      "name": "Architecture",
+      "tests": [
+        {
+          "test_id": "ARCH-001",
+          "category": "Architecture",
+          "description": "Rust module files complete",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "File missing: core/src/engine/mod.rs; File missing: core/src/brain/mod.rs; File missing: core/src/cli/mod.rs",
+          "issue_type": "architecture",
+          "fix_proposal": "Create missing module files",
+          "duration_ms": 0.5698204040527344
+        },
+        {
+          "test_id": "ARCH-002",
+          "category": "Architecture",
+          "description": "main.rs wires all subsystems",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "main.rs missing: ['mod cli', 'mod engine', 'mod brain', 'mod api', 'mod watch', 'MicrodragonConfig::load', 'MicrodragonEngine::new', 'start_api_server', 'start_watch_daemon', 'is_first_launch', 'SimpleMode::new', 'init_logging']",
+          "issue_type": "architecture",
+          "fix_proposal": "Wire missing subsystems in main.rs",
+          "duration_ms": 0.11086463928222656
+        },
+        {
+          "test_id": "ARCH-003",
+          "category": "Architecture",
+          "description": "MicrodragonEngine interface complete",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing interface: ['pub async fn process_command', 'pub async fn health_check', 'pub struct MicrodragonEngine', 'pub struct CommandResult', 'pub memory:', 'pub brain:']",
+          "issue_type": "architecture",
+          "fix_proposal": "Add missing methods to MicrodragonEngine",
+          "duration_ms": 0.11181831359863281
+        },
+        {
+          "test_id": "ARCH-004",
+          "category": "Architecture",
+          "description": "Cargo.toml dependency completeness",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing deps: ['tokio', 'axum', 'serde', 'rusqlite', 'uuid', 'chrono', 'anyhow', 'regex', 'tracing', 'crossterm', 'dirs', 'aes-gcm', 'ring', 'clap', 'reqwest']",
+          "issue_type": "architecture",
+          "fix_proposal": "Add to Cargo.toml: ['tokio', 'axum', 'serde', 'rusqlite', 'uuid', 'chrono', 'anyhow', 'regex', 'tracing', 'crossterm', 'dirs', 'aes-gcm', 'ring', 'clap', 'reqwest']",
+          "duration_ms": 0.05841255187988281
+        },
+        {
+          "test_id": "ARCH-005",
+          "category": "Architecture",
+          "description": "Python syntax across all modules",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All 0 Python files parse cleanly",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.30612945556640625
+        },
+        {
+          "test_id": "ARCH-006",
+          "category": "Architecture",
+          "description": "MicrodragonCli type signature",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "MicrodragonCli::new signature not found",
+          "issue_type": "architecture",
+          "fix_proposal": "Define MicrodragonCli::new(engine: MicrodragonEngine)",
+          "duration_ms": 0.05650520324707031
+        },
+        {
+          "test_id": "ARCH-007",
+          "category": "Architecture",
+          "description": "Rust brace balance check",
+          "status": "PASS",
+          "score": 1.0,
+          "evidence": "All Rust files have balanced braces",
+          "issue_type": null,
+          "fix_proposal": null,
+          "duration_ms": 0.24318695068359375
+        }
+      ],
+      "pass_count": 2,
+      "warn_count": 0,
+      "fail_count": 5,
+      "score": 0.2857142857142857
+    },
+    {
+      "name": "Security",
+      "tests": [
+        {
+          "test_id": "SEC-001",
+          "category": "Security",
+          "description": "Prompt injection guard coverage",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Prompt guard missing critical patterns",
+          "issue_type": "architecture",
+          "fix_proposal": "Implement prompt injection guard",
+          "duration_ms": 0.1068115234375
+        },
+        {
+          "test_id": "SEC-002",
+          "category": "Security",
+          "description": "Sandbox blocks dangerous commands",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Sandbox not blocking dangerous commands",
+          "issue_type": "architecture",
+          "fix_proposal": "Implement execution sandbox",
+          "duration_ms": 0.09059906005859375
+        },
+        {
+          "test_id": "SEC-003",
+          "category": "Security",
+          "description": "AES-256-GCM encryption implementation",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing: ['AES-256', 'Aes256Gcm', 'Nonce', 'encrypt', 'decrypt']",
+          "issue_type": "architecture",
+          "fix_proposal": "Complete AES-256-GCM implementation",
+          "duration_ms": 0.06842613220214844
+        },
+        {
+          "test_id": "SEC-004",
+          "category": "Security",
+          "description": "Email mandatory confirmation gate",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Email module missing confirmation gate",
+          "issue_type": "architecture",
+          "fix_proposal": "Add user_confirmed=False parameter to send_confirmed()",
+          "duration_ms": 0.05555152893066406
+        },
+        {
+          "test_id": "SEC-005",
+          "category": "Security",
+          "description": "Audit log implementation",
+          "status": "WARN",
+          "score": 0.4,
+          "evidence": "Audit log minimal",
+          "issue_type": "architecture",
+          "fix_proposal": "Expand audit.rs",
+          "duration_ms": 0.11301040649414062
+        },
+        {
+          "test_id": "SEC-006",
+          "category": "Security",
+          "description": "Skill security scanning",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Skill security scanner insufficient",
+          "issue_type": "tool",
+          "fix_proposal": "Implement full skill security scanning",
+          "duration_ms": 0.0514984130859375
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 1,
+      "fail_count": 5,
+      "score": 0.06666666666666667
+    },
+    {
+      "name": "Pipeline",
+      "tests": [
+        {
+          "test_id": "PIPE-001",
+          "category": "Pipeline",
+          "description": "All 9 phases defined",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing phases: ['Analyzing', 'Planning', 'Simulating', 'Executing', 'Verifying', 'Optimizing', 'Storing', 'Complete', 'Failed']",
+          "issue_type": "architecture",
+          "fix_proposal": "Add missing phases to PipelinePhase enum",
+          "duration_ms": 0.06103515625
+        },
+        {
+          "test_id": "PIPE-002",
+          "category": "Pipeline",
+          "description": "SIMULATE precedes EXECUTE",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Simulate phase missing or after execute",
+          "issue_type": "architecture",
+          "fix_proposal": "Add simulation phase before execution",
+          "duration_ms": 0.052928924560546875
+        },
+        {
+          "test_id": "PIPE-003",
+          "category": "Pipeline",
+          "description": "Token guard and loop detection",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "TokenGuard incomplete: ['TokenGuard', 'session_limit', 'loop_detector', 'check_and_record']",
+          "issue_type": "architecture",
+          "fix_proposal": "Complete TokenGuard implementation",
+          "duration_ms": 0.06222724914550781
+        },
+        {
+          "test_id": "PIPE-004",
+          "category": "Pipeline",
+          "description": "Reliability engine retry logic",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Reliability incomplete: ['ReliabilityEngine', 'max_retries', 'with_retry', 'retry']",
+          "issue_type": "architecture",
+          "fix_proposal": "Implement retry logic",
+          "duration_ms": 0.06031990051269531
+        },
+        {
+          "test_id": "PIPE-005",
+          "category": "Pipeline",
+          "description": "Dual execution modes (Command/Autonomous)",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Mode definition incomplete: ['ExecutionMode', 'Command', 'Autonomous']",
+          "issue_type": "architecture",
+          "fix_proposal": "Define ExecutionMode enum with Command and Autonomous variants",
+          "duration_ms": 0.06866455078125
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 0,
+      "fail_count": 5,
+      "score": 0.0
+    },
+    {
+      "name": "Agents",
+      "tests": [
+        {
+          "test_id": "AGENT-001",
+          "category": "Agents",
+          "description": "All 7 specialist agents defined",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing agents: ['Master', 'Coding', 'Research', 'Business', 'Automation', 'Writing', 'Security']",
+          "issue_type": "architecture",
+          "fix_proposal": "Add missing agent definitions",
+          "duration_ms": 0.0629425048828125
+        },
+        {
+          "test_id": "AGENT-002",
+          "category": "Agents",
+          "description": "Intent routing keyword coverage",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Routing covers only []",
+          "issue_type": "prompt",
+          "fix_proposal": "Expand route_task() keyword coverage",
+          "duration_ms": 0.0820159912109375
+        },
+        {
+          "test_id": "AGENT-003",
+          "category": "Agents",
+          "description": "System prompts per agent",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing prompts: ['MASTER_PROMPT', 'CODING_PROMPT', 'RESEARCH_PROMPT', 'BUSINESS_PROMPT', 'WRITING_PROMPT', 'SECURITY_PROMPT']",
+          "issue_type": "prompt",
+          "fix_proposal": "Add missing system prompts",
+          "duration_ms": 0.055789947509765625
+        },
+        {
+          "test_id": "AGENT-004",
+          "category": "Agents",
+          "description": "Simple Mode goal flow classification",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing flows: ['CreateContent', 'BuildApp', 'AnalyseData', 'AutomateTask', 'ResearchTopic', 'WriteDocument', 'ManageCode', 'PlayGame', 'ManageEmail', 'AnalyseMarket']",
+          "issue_type": "prompt",
+          "fix_proposal": "Add missing goal flows",
+          "duration_ms": 0.05078315734863281
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 0,
+      "fail_count": 4,
+      "score": 0.0
+    },
+    {
+      "name": "Memory",
+      "tests": [
+        {
+          "test_id": "MEM-001",
+          "category": "Memory",
+          "description": "SQLite schema completeness",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing tables: ['messages', 'sessions', 'tasks', 'feedback_log', 'code_artifacts', 'watch_conditions', 'settings']",
+          "issue_type": "memory",
+          "fix_proposal": "Add missing tables to schema",
+          "duration_ms": 0.052928924560546875
+        },
+        {
+          "test_id": "MEM-002",
+          "category": "Memory",
+          "description": "Vector memory with semantic search",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Vector memory incomplete: ['cosine_similarity', 'embed', 'store', 'search', 'VectorMemory', 'Ollama']",
+          "issue_type": "memory",
+          "fix_proposal": "Complete vector memory implementation",
+          "duration_ms": 0.05125999450683594
+        },
+        {
+          "test_id": "MEM-003",
+          "category": "Memory",
+          "description": "Memory wired to engine with RwLock",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "memory field missing in engine; RwLock<MemoryStore> not used; store_interaction() missing; get_recent_context() missing",
+          "issue_type": "memory",
+          "fix_proposal": "Wire memory correctly",
+          "duration_ms": 0.11396408081054688
+        },
+        {
+          "test_id": "MEM-004",
+          "category": "Memory",
+          "description": "SQLite WAL mode for performance",
+          "status": "WARN",
+          "score": 0.5,
+          "evidence": "WAL mode not explicitly set",
+          "issue_type": "memory",
+          "fix_proposal": "Add PRAGMA journal_mode=WAL to SQLite init",
+          "duration_ms": 0.06222724914550781
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 1,
+      "fail_count": 3,
+      "score": 0.125
+    },
+    {
+      "name": "Cost",
+      "tests": [
+        {
+          "test_id": "COST-001",
+          "category": "Cost",
+          "description": "Smart model routing logic",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Cost optimizer incomplete: ['smart_route', 'prefer_local', 'prefer_cheap', 'CostOptimizer', 'BudgetStatus', 'cache_lookup']",
+          "issue_type": "architecture",
+          "fix_proposal": "Complete cost optimizer",
+          "duration_ms": 0.05316734313964844
+        },
+        {
+          "test_id": "COST-002",
+          "category": "Cost",
+          "description": "Daily budget cap",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "No daily budget cap found",
+          "issue_type": "architecture",
+          "fix_proposal": "Implement MICRODRAGON_DAILY_BUDGET_USD env var",
+          "duration_ms": 0.0782012939453125
+        },
+        {
+          "test_id": "COST-003",
+          "category": "Cost",
+          "description": "Prompt compression implementation",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "No prompt compression found",
+          "issue_type": "architecture",
+          "fix_proposal": "Implement compress_prompt() in CostOptimizer",
+          "duration_ms": 0.05602836608886719
+        },
+        {
+          "test_id": "COST-004",
+          "category": "Cost",
+          "description": "Provider cost table completeness",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Only covers: []",
+          "issue_type": "architecture",
+          "fix_proposal": "Add cost data for all providers",
+          "duration_ms": 0.060558319091796875
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 0,
+      "fail_count": 4,
+      "score": 0.0
+    },
+    {
+      "name": "SelfDebug",
+      "tests": [
+        {
+          "test_id": "DEBUG-001",
+          "category": "SelfDebug",
+          "description": "SelfDebugEngine class complete",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "SelfDebugEngine incomplete: ['SelfDebugEngine', 'run_with_debug', 'max_iterations', '_auto_fix', '_execute_code', 'debug_log']",
+          "issue_type": "tool",
+          "fix_proposal": "Complete SelfDebugEngine implementation",
+          "duration_ms": 0.053882598876953125
+        },
+        {
+          "test_id": "DEBUG-002",
+          "category": "SelfDebug",
+          "description": "Auto-fix error type coverage",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Only handles: []",
+          "issue_type": "tool",
+          "fix_proposal": "Add auto-fix patterns for all common Python errors",
+          "duration_ms": 0.06842613220214844
+        },
+        {
+          "test_id": "DEBUG-003",
+          "category": "SelfDebug",
+          "description": "Multi-language self-debug",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Only supports: []",
+          "issue_type": "tool",
+          "fix_proposal": "Add more language support to _execute_code()",
+          "duration_ms": 0.049591064453125
+        },
+        {
+          "test_id": "DEBUG-004",
+          "category": "SelfDebug",
+          "description": "Iteration cap prevents infinite loop",
+          "status": "WARN",
+          "score": 0.5,
+          "evidence": "Iteration cap exists but value unclear",
+          "issue_type": "tool",
+          "fix_proposal": "Ensure max_iterations = 5 is enforced",
+          "duration_ms": 0.06651878356933594
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 1,
+      "fail_count": 3,
+      "score": 0.125
+    },
+    {
+      "name": "Gaming",
+      "tests": [
+        {
+          "test_id": "GAME-001",
+          "category": "Gaming",
+          "description": "Core game engine structure",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing game classes: ['MicrodragonGameEngine', 'ScreenCapture', 'GameVisionAnalyser', 'GameController', 'GameGenre', 'GameState', 'GameAction']",
+          "issue_type": "tool",
+          "fix_proposal": "Add missing game engine classes",
+          "duration_ms": 0.06628036499023438
+        },
+        {
+          "test_id": "GAME-002",
+          "category": "Gaming",
+          "description": "All 4 game strategy implementations",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing: ['RacingStrategy', 'FightingStrategy', 'OpenWorldStrategy', 'ShooterStrategy']",
+          "issue_type": "tool",
+          "fix_proposal": "Implement missing strategies",
+          "duration_ms": 0.05173683166503906
+        },
+        {
+          "test_id": "GAME-003",
+          "category": "Gaming",
+          "description": "Computer vision analysis techniques",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Vision: []",
+          "issue_type": "tool",
+          "fix_proposal": "Expand computer vision coverage",
+          "duration_ms": 0.04982948303222656
+        },
+        {
+          "test_id": "GAME-004",
+          "category": "Gaming",
+          "description": "Per-game vision (GTA/NFS/MK)",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing: ['GTAVisionAnalyser', 'NFSVisionAnalyser', 'MKVisionAnalyser', '_count_wanted_stars', '_detect_lane_centre_deviation', '_read_health_bar']",
+          "issue_type": "tool",
+          "fix_proposal": "Complete per-game vision",
+          "duration_ms": 0.056743621826171875
+        },
+        {
+          "test_id": "GAME-005",
+          "category": "Gaming",
+          "description": "Mortal Kombat combo library",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Combo library: []",
+          "issue_type": "tool",
+          "fix_proposal": "Complete MK combo library",
+          "duration_ms": 0.051021575927734375
+        },
+        {
+          "test_id": "GAME-006",
+          "category": "Gaming",
+          "description": "PID steering controller for racing",
+          "status": "WARN",
+          "score": 0.5,
+          "evidence": "PID steering incomplete",
+          "issue_type": "tool",
+          "fix_proposal": "Complete PID controller",
+          "duration_ms": 0.06961822509765625
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 1,
+      "fail_count": 5,
+      "score": 0.08333333333333333
+    },
+    {
+      "name": "Training",
+      "tests": [
+        {
+          "test_id": "TRAIN-001",
+          "category": "Training",
+          "description": "Training provider classes",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing: ['OpenAIFineTuner', 'LocalFineTuner', 'DatasetBuilder', 'TrainingEngine', 'FineTuneJob']",
+          "issue_type": "tool",
+          "fix_proposal": "Complete training module",
+          "duration_ms": 0.06437301635742188
+        },
+        {
+          "test_id": "TRAIN-002",
+          "category": "Training",
+          "description": "LoRA/QLoRA local fine-tuning",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "LoRA components found: []",
+          "issue_type": "tool",
+          "fix_proposal": "Complete LoRA implementation",
+          "duration_ms": 0.06079673767089844
+        },
+        {
+          "test_id": "TRAIN-003",
+          "category": "Training",
+          "description": "Dataset builder source methods",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Missing: ['from_conversations', 'from_files', 'from_jsonl', 'export_openai_format', 'export_ollama_modelfile']",
+          "issue_type": "tool",
+          "fix_proposal": "Complete DatasetBuilder",
+          "duration_ms": 0.05221366882324219
+        },
+        {
+          "test_id": "TRAIN-004",
+          "category": "Training",
+          "description": "Product strategist engine",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Strategist incomplete: ['ProductStrategistEngine', 'build_prd_prompt', 'build_market_analysis_prompt', 'TAM', 'roadmap']",
+          "issue_type": "prompt",
+          "fix_proposal": "Complete ProductStrategistEngine",
+          "duration_ms": 0.051021575927734375
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 0,
+      "fail_count": 4,
+      "score": 0.0
+    },
+    {
+      "name": "Social",
+      "tests": [
+        {
+          "test_id": "SOCIAL-001",
+          "category": "Social",
+          "description": "Telegram bot implementation",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Telegram bot has syntax error",
+          "issue_type": "tool",
+          "fix_proposal": "Fix syntax",
+          "duration_ms": 0.12969970703125
+        },
+        {
+          "test_id": "SOCIAL-002",
+          "category": "Social",
+          "description": "Discord bot implementation",
+          "status": "WARN",
+          "score": 0.5,
+          "evidence": "Discord bot incomplete",
+          "issue_type": "tool",
+          "fix_proposal": "Complete Discord bot",
+          "duration_ms": 0.11038780212402344
+        },
+        {
+          "test_id": "SOCIAL-003",
+          "category": "Social",
+          "description": "WhatsApp bridge with QR auth",
+          "status": "WARN",
+          "score": 0.5,
+          "evidence": "WhatsApp bridge partial: []",
+          "issue_type": "tool",
+          "fix_proposal": "Complete WhatsApp bridge",
+          "duration_ms": 0.051975250244140625
+        },
+        {
+          "test_id": "SOCIAL-004",
+          "category": "Social",
+          "description": "API server social bridge",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "API incomplete: ['start_api_server', '/api/chat', '/api/status', 'process_command', 'ChatRequest', 'ChatResponse']",
+          "issue_type": "architecture",
+          "fix_proposal": "Complete API server",
+          "duration_ms": 0.06628036499023438
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 2,
+      "fail_count": 2,
+      "score": 0.25
+    },
+    {
+      "name": "CI/CD",
+      "tests": [
+        {
+          "test_id": "CICD-001",
+          "category": "CI/CD",
+          "description": "Release workflow completeness",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "release.yml missing",
+          "issue_type": "architecture",
+          "fix_proposal": "Create .github/workflows/release.yml",
+          "duration_ms": 0.07581710815429688
+        },
+        {
+          "test_id": "CICD-002",
+          "category": "CI/CD",
+          "description": "CI workflow Rust + Python checks",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "ci.yml missing",
+          "issue_type": "architecture",
+          "fix_proposal": "Create ci.yml",
+          "duration_ms": 0.06008148193359375
+        },
+        {
+          "test_id": "CICD-003",
+          "category": "CI/CD",
+          "description": "npm package.json validity",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Invalid JSON: Expecting value: line 1 column 1 (char 0)",
+          "issue_type": "architecture",
+          "fix_proposal": "Fix package.json JSON",
+          "duration_ms": 0.09012222290039062
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 0,
+      "fail_count": 3,
+      "score": 0.0
+    },
+    {
+      "name": "UX",
+      "tests": [
+        {
+          "test_id": "UX-001",
+          "category": "UX",
+          "description": "First launch consent and policy",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "First launch missing: ['is_first_launch', 'run_first_launch', 'print_security_policy', 'prompt_acceptance', 'accept', 'decline', 'x.com/ememzyvisuals', 'BETA', 'EMEMZYVISUALS', 'mark_launched']",
+          "issue_type": "prompt",
+          "fix_proposal": "Add missing first-launch elements",
+          "duration_ms": 0.06866455078125
+        },
+        {
+          "test_id": "UX-002",
+          "category": "UX",
+          "description": "Simple Mode conversational interface",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Simple Mode missing: ['Hi', 'achieve today', 'GoalFlow', 'from_message', '/pro', 'SimpleMode', 'print_greeting', 'prompt_user']",
+          "issue_type": "prompt",
+          "fix_proposal": "Complete Simple Mode",
+          "duration_ms": 0.05936622619628906
+        },
+        {
+          "test_id": "UX-003",
+          "category": "UX",
+          "description": "Windows CMD safety fallback",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "No Windows CMD detection",
+          "issue_type": "architecture",
+          "fix_proposal": "Add terminal capability detection",
+          "duration_ms": 0.05888938903808594
+        },
+        {
+          "test_id": "UX-004",
+          "category": "UX",
+          "description": "Brand attribution in README",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Attribution missing: ['EMEMZYVISUALS DIGITALS', 'Emmanuel Ariyo', 'ememzyvisuals', 'Networked Execution', 'Cognitive Autonomy']",
+          "issue_type": "prompt",
+          "fix_proposal": "Add attribution to README",
+          "duration_ms": 0.06461143493652344
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 0,
+      "fail_count": 4,
+      "score": 0.0
+    },
+    {
+      "name": "LongHorizon",
+      "tests": [
+        {
+          "test_id": "HORIZON-001",
+          "category": "LongHorizon",
+          "description": "Background watch daemon",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Watch daemon incomplete: ['WatchDaemon', 'run', 'tick', 'check_count', 'evaluate_condition', 'fire_alert']",
+          "issue_type": "architecture",
+          "fix_proposal": "Complete WatchDaemon",
+          "duration_ms": 0.05602836608886719
+        },
+        {
+          "test_id": "HORIZON-002",
+          "category": "LongHorizon",
+          "description": "Self-improvement learning loop",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Self-improvement incomplete: ['SelfImprovementLedger', 'record_failure', 'suggest_improvement', 'learn_from_task', 'failure_patterns']",
+          "issue_type": "memory",
+          "fix_proposal": "Complete SelfImprovementLedger",
+          "duration_ms": 0.07748603820800781
+        },
+        {
+          "test_id": "HORIZON-003",
+          "category": "LongHorizon",
+          "description": "Cron-based task scheduler",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Scheduler incomplete: ['AutonomousScheduler', 'ScheduledTask', 'add_task', 'tick', 'cron']",
+          "issue_type": "architecture",
+          "fix_proposal": "Complete AutonomousScheduler",
+          "duration_ms": 0.06461143493652344
+        },
+        {
+          "test_id": "HORIZON-004",
+          "category": "LongHorizon",
+          "description": "Performance metrics system",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "Metrics incomplete: ['PerformanceMetrics', 'success_rate', 'record_task', 'avg_latency_ms', 'user_satisfaction']",
+          "issue_type": "memory",
+          "fix_proposal": "Complete metrics",
+          "duration_ms": 0.061511993408203125
+        },
+        {
+          "test_id": "HORIZON-005",
+          "category": "LongHorizon",
+          "description": "Multi-step goal composition",
+          "status": "FAIL",
+          "score": 0.0,
+          "evidence": "no clarifying question; no context combination; no action preview",
+          "issue_type": "prompt",
+          "fix_proposal": "Complete multi-step composition",
+          "duration_ms": 0.06318092346191406
+        }
+      ],
+      "pass_count": 0,
+      "warn_count": 0,
+      "fail_count": 5,
+      "score": 0.0
+    }
+  ],
+  "overall_score": 0.0817,
+  "task_success_rate": 0.125,
+  "tool_reliability": 0.0862,
+  "hallucination_rate": 0.9333,
+  "long_horizon_rate": 0.0,
+  "total_tests": 60,
+  "passed": 2,
+  "warned": 6,
+  "failed": 52,
+  "failure_patterns": [
+    {
+      "type": "architecture",
+      "tests": [
+        "ARCH-001",
+        "ARCH-002",
+        "ARCH-003",
+        "ARCH-004",
+        "ARCH-006",
+        "SEC-001",
+        "SEC-002",
+        "SEC-003",
+        "SEC-004",
+        "PIPE-001",
+        "PIPE-002",
+        "PIPE-003",
+        "PIPE-004",
+        "PIPE-005",
+        "AGENT-001",
+        "COST-001",
+        "COST-002",
+        "COST-003",
+        "COST-004",
+        "SOCIAL-004",
+        "CICD-001",
+        "CICD-002",
+        "CICD-003",
+        "UX-003",
+        "HORIZON-001",
+        "HORIZON-003"
+      ]
+    },
+    {
+      "type": "prompt",
+      "tests": [
+        "AGENT-002",
+        "AGENT-003",
+        "AGENT-004",
+        "TRAIN-004",
+        "UX-001",
+        "UX-002",
+        "UX-004",
+        "HORIZON-005"
+      ]
+    },
+    {
+      "type": "tool",
+      "tests": [
+        "SEC-006",
+        "DEBUG-001",
+        "DEBUG-002",
+        "DEBUG-003",
+        "GAME-001",
+        "GAME-002",
+        "GAME-003",
+        "GAME-004",
+        "GAME-005",
+        "TRAIN-001",
+        "TRAIN-002",
+        "TRAIN-003",
+        "SOCIAL-001"
+      ]
+    },
+    {
+      "type": "memory",
+      "tests": [
+        "MEM-001",
+        "MEM-002",
+        "MEM-003",
+        "HORIZON-002",
+        "HORIZON-004"
+      ]
+    }
+  ],
+  "fixes_applied": []
+}

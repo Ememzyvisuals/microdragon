@@ -1,0 +1,98 @@
+# MICRODRAGON Configuration — microdragon.example.toml
+# Copy to ~/.config/microdragon/config.toml and fill in your values.
+# Run `microdragon setup` for interactive wizard setup.
+
+version = "0.1.0"
+
+# ── AI Provider ──────────────────────────────────────────────────────────────
+[ai]
+# Active provider: "anthropic" | "openai" | "groq" | "openrouter" | "custom"
+active_provider = "anthropic"
+
+max_context_tokens = 100000
+temperature = 0.7
+max_retries = 3
+timeout_secs = 120
+
+system_prompt = """
+You are MICRODRAGON, a universal human-level AI agent. You are highly capable,
+proactive, and thoughtful. Think step-by-step before acting.
+"""
+
+[ai.providers]
+# Fill in only the provider you want to use.
+# API keys can also be set via environment variables:
+#   ANTHROPIC_API_KEY, OPENAI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY
+
+anthropic_api_key  = ""          # sk-ant-...
+anthropic_model    = "claude-opus-4-5"
+
+openai_api_key     = ""          # sk-...
+openai_model       = "gpt-4o"
+# openai_base_url  = "https://api.openai.com/v1"  # Override for Azure etc.
+
+groq_api_key       = ""          # gsk_...
+groq_model         = "mixtral-8x7b-32768"
+
+openrouter_api_key = ""          # sk-or-...
+openrouter_model   = "anthropic/claude-opus-4-5"
+
+# For local models (Ollama, LM Studio):
+# custom_endpoint  = "http://localhost:11434/v1"
+# custom_model     = "llama3"
+
+# ── Storage ───────────────────────────────────────────────────────────────────
+[storage]
+# All paths default to ~/.local/share/microdragon/ — change only if needed
+encrypt_at_rest = true
+
+# ── Security ──────────────────────────────────────────────────────────────────
+[security]
+encryption_enabled  = true
+session_timeout_mins = 60
+audit_log_enabled   = true
+sandbox_execution   = true    # Block dangerous shell commands
+
+# ── Modules ───────────────────────────────────────────────────────────────────
+[modules]
+coding_enabled     = true
+research_enabled   = true
+social_enabled     = true
+business_enabled   = false    # Enable for trading/market features
+design_enabled     = true
+simulation_enabled = true
+# python_path      = "python3"   # Override Python interpreter
+# node_path        = "node"      # Override Node.js interpreter
+
+# ── Social Platforms ──────────────────────────────────────────────────────────
+[social]
+command_prefix       = "/microdragon"
+human_typing_delay_ms = 600    # Simulate human typing speed
+
+# WhatsApp
+whatsapp_enabled     = false
+# No token needed — QR code auth. Run: microdragon social whatsapp start
+
+# Telegram
+telegram_enabled     = false
+telegram_bot_token   = ""      # Get from @BotFather
+# telegram_allowed_users = [123456789]  # Leave empty to allow all
+
+# Discord
+discord_enabled      = false
+discord_bot_token    = ""      # From Discord Developer Portal
+# discord_allowed_guilds = ["guild_id_here"]
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+[logging]
+level           = "info"      # trace | debug | info | warn | error
+file_logging    = true
+max_log_size_mb = 100
+keep_days       = 30
+
+# ── Performance ───────────────────────────────────────────────────────────────
+[performance]
+max_concurrent_tasks = 8
+thread_pool_size     = 4
+cache_size_mb        = 512
+enable_gpu           = false
