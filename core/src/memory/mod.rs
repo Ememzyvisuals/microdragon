@@ -75,4 +75,38 @@ impl MemoryStore {
     }
 
     pub fn db_size_kb(&self) -> u64 { self.persistent.db_size_kb() }
+
+    /// Search recent conversation history for messages relevant to `query`.
+    /// Returns up to `limit` short snippets (assistant responses only).
+    pub async fn search_relevant(&self, query: &str, limit: usize) -> Result<Vec<String>> {
+        let recent = self.get_recent_context(40).await.unwrap_or_default();
+
+        let query_words: Vec<&str> = query.split_whitespace()
+            .filter(|w| w.len() > 3)
+            .collect();
+
+        if query_words.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let mut scored: Vec<(usize, String)> = recent.iter()
+            .filter(|m| matches!(m.role, crate::config::providers::MessageRole::Assistant))
+            .filter_map(|m| {
+                let lower = m.content.to_lowercase();
+                let score = query_words.iter()
+                    .filter(|w| lower.contains(&w.to_lowercase()))
+                    .count();
+                if score > 0 {
+                    // Return a short preview (first 120 chars)
+                    let preview = m.content.chars().take(120).collect::<String>();
+                    Some((score, preview))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        scored.sort_by(|a, b| b.0.cmp(&a.0));
+        Ok(scored.into_iter().take(limit).map(|(_, s)| s).collect())
+    }
 }

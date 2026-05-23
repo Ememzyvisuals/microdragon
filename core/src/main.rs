@@ -13,6 +13,7 @@ mod watch;
 mod skills;
 mod harness;
 mod mcp;
+mod tools;
 
 use anyhow::Result;
 use tracing::{info, error};
@@ -86,25 +87,32 @@ async fn main() -> Result<()> {
         }
     }
 
-    // 9. Simple vs Pro mode
+    // 9. TUI / Simple / CLI routing
     let args: Vec<String> = std::env::args().collect();
-    let is_pro = args.iter().any(|a| a == "--pro" || a == "-p");
+    let is_simple  = args.iter().any(|a| a == "--simple" || a == "-s");
+    let is_cli_cmd = args.len() > 1 && !args[1].starts_with('-');
 
-    if is_pro || args.len() > 1 {
+    if is_cli_cmd {
+        // Subcommand mode: microdragon ask / code / research / etc.
         let cli = MicrodragonCli::new(engine);
         if let Err(e) = cli.run().await {
             error!("CLI error: {}", e);
             eprintln!("Error: {}", e);
             process::exit(1);
         }
-    } else {
+    } else if is_simple {
+        // Fallback plain mode for terminals that don't support ratatui
         let mut simple = cli::simple_mode::SimpleMode::new(engine);
         if let Err(e) = simple.run().await {
             eprintln!("Error: {}", e);
             process::exit(1);
         }
-        if simple.is_pro_mode() {
-            eprintln!("Restart with: microdragon --pro");
+    } else {
+        // Default: full TUI (like OpenCode / Claude Code)
+        if let Err(e) = cli::tui::run(engine).await {
+            eprintln!("TUI error: {}", e);
+            eprintln!("If your terminal doesn't support the TUI, run: microdragon --simple");
+            process::exit(1);
         }
     }
 

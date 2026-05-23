@@ -71,6 +71,7 @@ async-trait     = { version = "0.1" }
 bytes           = { version = "1" }
 regex           = { version = "1" }
 unicode-width   = { version = "0.2" }
+urlencoding     = { version = "2" }
 fnv             = { version = "1" }
 
 # ── System ───────────────────────────────────────────────────────────────────

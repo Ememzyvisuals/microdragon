@@ -1,0 +1,63 @@
+# ─── Rust ──────────────────────────────────────────────────────────────────
+core/target/
+*.rlib
+*.rmeta
+
+# ─── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# ─── Node.js ────────────────────────────────────────────────────────────────
+node_modules/
+npm/node_modules/
+modules/social/node_bridge/node_modules/
+*.lock
+package-lock.json
+yarn.lock
+
+# ─── npm package binaries (downloaded by CI, NOT committed) ─────────────────
+npm/bin/microdragon
+npm/bin/microdragon.exe
+npm/bin/microdragon-linux-x64
+npm/bin/microdragon-linux-arm64
+npm/bin/microdragon-macos-x64
+npm/bin/microdragon-macos-arm64
+npm/bin/microdragon-windows-x64.exe
+
+# ─── MICRODRAGON data ─────────────────────────────────────────────────────────
+.local/share/microdragon/
+*.db
+*.key
+.accepted_terms
+
+# ─── Environment ────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.secret
+
+# ─── OS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ─── Editor ──────────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── Generated assets ────────────────────────────────────────────────────────
+/tmp/
+staging_*
+flyer_staging_*
+*.tmp

@@ -24,90 +24,92 @@ use dashmap::DashMap;
 use crate::config::MicrodragonConfig;
 use crate::brain::MicrodragonBrain;
 use crate::memory::MemoryStore;
+use crate::engine::pipeline::AgenticPipeline;
 
 /// The main MICRODRAGON engine - orchestrates all subsystems
 pub struct MicrodragonEngine {
-    pub brain: Arc<MicrodragonBrain>,
-    pub memory: Arc<RwLock<MemoryStore>>,
+    pub brain:    Arc<MicrodragonBrain>,
+    pub memory:   Arc<RwLock<MemoryStore>>,
     pub dispatcher: Arc<ModuleDispatcher>,
-    pub event_bus: Arc<EventBus>,
-    pub registry: Arc<ModuleRegistry>,
-    pub config: Arc<RwLock<MicrodragonConfig>>,
+    pub event_bus:  Arc<EventBus>,
+    pub registry:   Arc<ModuleRegistry>,
+    pub config:     Arc<RwLock<MicrodragonConfig>>,
     pub active_tasks: Arc<DashMap<String, Task>>,
+    pipeline: Arc<AgenticPipeline>,
 }
 
 impl MicrodragonEngine {
     pub async fn new(config: MicrodragonConfig) -> Result<Self> {
-        info!("Initializing MICRODRAGON Engine...");
+        info!("Initializing MICRODRAGON Engine…");
 
-        // Initialize memory store
         let memory = MemoryStore::new(&config.storage).await?;
         info!("✓ Memory store initialized");
 
-        // Initialize brain
-        let brain = MicrodragonBrain::new(&config).await?;
+        let brain = Arc::new(MicrodragonBrain::new(&config).await?);
         info!("✓ Brain layer initialized (provider: {})", config.ai.active_provider);
 
-        // Initialize event bus
-        let event_bus = EventBus::new();
-
-        // Initialize module registry — wrap in Arc first so it can be shared
-        // with both the dispatcher and stored directly on the engine.
-        let registry = Arc::new(ModuleRegistry::new(&config));
-
-        // Initialize dispatcher — clone the Arc (cheap ref-count bump, not a deep copy)
+        let event_bus  = EventBus::new();
+        let registry   = Arc::new(ModuleRegistry::new(&config));
         let dispatcher = ModuleDispatcher::new(Arc::clone(&registry));
 
-        info!("✓ MICRODRAGON Engine ready");
+        let memory_arc = Arc::new(RwLock::new(memory));
+        let pipeline   = Arc::new(AgenticPipeline::new(
+            Arc::clone(&brain),
+            Arc::clone(&memory_arc),
+        ));
+
+        info!("✓ MICRODRAGON Engine ready — 9-phase agentic pipeline active");
 
         Ok(Self {
-            brain: Arc::new(brain),
-            memory: Arc::new(RwLock::new(memory)),
+            brain,
+            memory: memory_arc,
             dispatcher: Arc::new(dispatcher),
-            event_bus: Arc::new(event_bus),
+            event_bus:  Arc::new(event_bus),
             registry,
             config: Arc::new(RwLock::new(config)),
             active_tasks: Arc::new(DashMap::new()),
+            pipeline,
         })
     }
 
-    /// Process a user command through the full pipeline
+    /// Process a user command through the full 9-phase agentic pipeline.
+    /// `progress_cb` receives (phase_num, phase_name, detail) for live display.
     pub async fn process_command(&self, input: &str) -> Result<CommandResult> {
-        let task_id = uuid::Uuid::new_v4().to_string();
-        info!("Processing command [{}]: {}", &task_id[..8], &input[..input.len().min(80)]);
+        self.process_command_with_progress(input, &|_, _, _| {}).await
+    }
 
-        // Get conversation context
+    /// Process with a real-time progress callback — used by the CLI spinner.
+    pub async fn process_command_with_progress(
+        &self,
+        input: &str,
+        progress: &dyn Fn(u8, &'static str, &str),
+    ) -> Result<CommandResult> {
+        let task_id = uuid::Uuid::new_v4().to_string();
+        info!("Pipeline run [{}]: {}", &task_id[..8], &input[..input.len().min(80)]);
+
         let context = {
             let memory = self.memory.read().await;
             memory.get_recent_context(20).await.unwrap_or_default()
         };
 
-        // Brain processes the request
-        let brain_response = self.brain.process(input, &context).await?;
+        let result = self.pipeline.run(input, &context, progress).await?;
 
-        // Store the interaction
-        {
-            let mut memory = self.memory.write().await;
-            memory.store_interaction(input, &brain_response.content).await?;
-        }
-
-        // Emit completion event
         self.event_bus.emit(MicrodragonEvent::CommandCompleted {
             task_id: task_id.clone(),
-            tokens_used: brain_response.tokens_used,
+            tokens_used: result.tokens_used,
         }).await;
 
         Ok(CommandResult {
             task_id,
-            response: brain_response.content,
-            model: brain_response.model,
-            provider: brain_response.provider,
-            tokens_used: brain_response.tokens_used,
-            latency_ms: brain_response.latency_ms,
+            response:    result.response,
+            model:       result.model,
+            provider:    result.provider,
+            tokens_used: result.tokens_used,
+            latency_ms:  result.latency_ms,
         })
     }
 
-    /// Process with streaming output
+    /// Stream a response (interactive mode)
     pub async fn process_streaming(
         &self,
         input: &str,
@@ -117,7 +119,6 @@ impl MicrodragonEngine {
             let memory = self.memory.read().await;
             memory.get_recent_context(20).await.unwrap_or_default()
         };
-
         self.brain.process_streaming(input, &context, tx).await
     }
 
@@ -134,11 +135,11 @@ impl MicrodragonEngine {
     pub async fn health_check(&self) -> EngineHealth {
         let config = self.config.read().await;
         EngineHealth {
-            is_healthy: config.is_configured(),
-            provider: config.ai.active_provider.to_string(),
-            model: config.ai.providers.get_model(&config.ai.active_provider),
+            is_healthy:   config.is_configured(),
+            provider:     config.ai.active_provider.to_string(),
+            model:        config.ai.providers.get_model(&config.ai.active_provider),
             active_tasks: self.active_tasks.len(),
-            memory_ok: true,
+            memory_ok:    true,
         }
     }
 }

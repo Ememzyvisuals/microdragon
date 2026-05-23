@@ -194,19 +194,71 @@ impl SimpleMode {
                 input.to_string()
             };
 
-            // Execute via engine
-            if CAPS.ansi_color { print!("  {}", "thinking...".to_string().with(Theme::DIM)); }
-            else         { print!("  ..."); }
-            io::stdout().flush()?;
+            // ── 9-Phase Agentic Pipeline — live phase display ─────────────
+            println!();
 
-            match self.engine.process_command(&full_input).await {
+            let phase_names: [&str; 9] = [
+                "PERCEIVE", "PLAN", "GATHER", "SYNTHESIZE",
+                "REASON", "REFLECT", "REFINE", "FORMAT", "COMMIT",
+            ];
+
+            // Print phase header
+            if CAPS.ansi_color {
+                println!("  {} {}",
+                    "🐉".to_string().with(Theme::GREEN),
+                    "Agentic Pipeline".to_string().with(Theme::GREEN).bold(),
+                );
+            }
+
+            // Progress callback — prints each phase as it starts
+            use std::sync::{Arc as SArc, Mutex};
+            let last_phase_line: SArc<Mutex<Option<String>>> = SArc::new(Mutex::new(None));
+            let last_line_clone = SArc::clone(&last_phase_line);
+
+            let progress_cb = move |phase: u8, name: &'static str, detail: &str| {
+                // Clear the previous phase line
+                let mut last = last_line_clone.lock().unwrap();
+                if last.is_some() && CAPS.ansi_color {
+                    // Move up one line and clear it
+                    print!("\x1B[1A\x1B[2K");
+                }
+
+                let line = if CAPS.ansi_color {
+                    format!(
+                        "  {} {}/{} {}  {}",
+                        "▶".to_string().with(Theme::GREEN),
+                        phase.to_string().with(Theme::GREEN).bold(),
+                        "9".to_string().with(Color::DarkGrey),
+                        name.to_string().with(Theme::EMBER).bold(),
+                        detail.to_string().with(Color::DarkGrey),
+                    )
+                } else {
+                    format!("  [{}/9] {} — {}", phase, name, detail)
+                };
+
+                println!("{}", line);
+                let _ = io::stdout().flush();
+                *last = Some(line);
+            };
+
+            match self.engine.process_command_with_progress(&full_input, &progress_cb).await {
                 Ok(result) => {
-                    print!("\r                    \r");
-                    println!();
-                    for line in result.response.lines() {
-                        println!("  {}", line);
+                    // Clear last phase line, print completion
+                    if CAPS.ansi_color {
+                        print!("\x1B[1A\x1B[2K");
+                        println!("  {} {} · {} · {}ms · {} tokens",
+                            "✓".to_string().with(Theme::GREEN).bold(),
+                            "Pipeline complete".to_string().with(Theme::GREEN),
+                            result.provider.to_string().with(Color::DarkGrey),
+                            result.latency_ms.to_string().with(Color::DarkGrey),
+                            result.tokens_used.to_string().with(Color::DarkGrey),
+                        );
+                    } else {
+                        println!("  [✓] Done — {}ms", result.latency_ms);
                     }
-                    println!();
+
+                    crate::cli::markdown::render(&result.response);
+
                     if CAPS.ansi_color {
                         println!("  {}", flow.followup().to_string().with(Theme::DIM));
                     } else {
@@ -215,12 +267,12 @@ impl SimpleMode {
                     println!();
                 }
                 Err(e) => {
-                    print!("\r                    \r");
-                    println!();
                     if CAPS.ansi_color {
-                        println!("  {} {}", "✗".to_string().with(Theme::FIRE), e);
+                        print!("\x1B[1A\x1B[2K");
+                        println!("  {} Pipeline error: {}",
+                            "✗".to_string().with(Theme::FIRE).bold(), e);
                     } else {
-                        println!("  Error: {}", e);
+                        println!("\n  Error: {}", e);
                     }
                     println!("  Not configured? Run: microdragon setup");
                     println!();
