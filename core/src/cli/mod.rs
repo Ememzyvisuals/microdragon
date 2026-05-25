@@ -13,7 +13,6 @@ pub mod first_launch;
 pub mod simple_mode;
 pub mod markdown;
 pub mod tui;
-pub use simple_mode::SimpleMode;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -1482,7 +1481,7 @@ Item 1|100|2026-01-01|Paid
             GithubCommands::Issue { repo, title } => {
                 let parts: Vec<&str> = repo.splitn(2, '/').collect();
                 if parts.len() != 2 {
-                    print_warn("Format: microdragon github issue owner/repo "title"");
+                    print_warn("Format: microdragon github issue owner/repo \"Title of issue\"");
                     return Ok(());
                 }
                 let issue_title = title.join(" ");
@@ -1528,7 +1527,7 @@ Item 1|100|2026-01-01|Paid
 
     /// Called when a command is run but no API key is configured.
     /// Instead of dying silently, offer to set it up right now.
-    async fn offer_inline_setup(&self, context: &str) -> Result<()> {
+    async fn offer_inline_setup(&self, _context: &str) -> Result<()> {
         println!();
         print_warn("No API key configured.");
         println!();

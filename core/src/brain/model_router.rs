@@ -3,7 +3,6 @@
 
 use anyhow::{anyhow, Context, Result};
 use reqwest::{Client, header};
-use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc::Sender;

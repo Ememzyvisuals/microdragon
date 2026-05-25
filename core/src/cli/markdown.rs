@@ -46,7 +46,7 @@ pub fn render_with_indent(text: &str, indent: &str) {
     let mut code_lang = String::new();
     let mut code_buf: Vec<String> = Vec::new();
     #[allow(unused_assignments)]
-    let mut list_counter = 0u32;
+    #[allow(unused_assignments)] let mut list_counter = 0u32;
     let mut prev_blank = true;
 
     for line in text.lines() {
@@ -64,7 +64,7 @@ pub fn render_with_indent(text: &str, indent: &str) {
                 // Open block
                 code_lang = trimmed.trim_start_matches('`').to_string();
                 in_code_block = true;
-                list_counter = 0;
+                // list_counter = 0; (removed: value never read)
             }
             prev_blank = false;
             continue;
@@ -81,7 +81,7 @@ pub fn render_with_indent(text: &str, indent: &str) {
                 writeln!(stdout).ok();
             }
             prev_blank = true;
-            list_counter = 0;
+            // list_counter = 0; (removed: value never read)
             continue;
         }
         prev_blank = false;
@@ -146,7 +146,6 @@ pub fn render_with_indent(text: &str, indent: &str) {
             || trimmed.starts_with("+ ");
 
         if is_bullet {
-            list_counter = 0;
             let rest = &trimmed[2..];
             let bullet = "◆".with(Theme::GREEN);
             let _ = write!(stdout, "{}{}  ", indent, bullet);

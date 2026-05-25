@@ -191,12 +191,12 @@ impl TermCaps {
         }
     }
 
-    fn detect_unicode(platform: &TermPlatform) -> bool {
+    fn detect_unicode(_platform: &TermPlatform) -> bool {
         #[cfg(windows)]
         {
             // Windows Terminal and modern PowerShell support Unicode
             matches!(
-                platform,
+                _platform,
                 TermPlatform::WindowsTerminal | TermPlatform::PowerShell
             )
         }
