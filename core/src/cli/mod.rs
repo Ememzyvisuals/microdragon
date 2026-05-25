@@ -24,7 +24,6 @@ use self::interactive::InteractiveMode;
 use self::setup::SetupWizard;
 use self::display::{print_ok, print_warn, Spinner, response_footer};
 use self::theme::Theme;
-use self::markdown;
 use crossterm::style::Stylize;
 
 #[derive(Parser)]
@@ -643,11 +642,10 @@ impl MicrodragonCli {
     async fn run_ask(&self, input: &str, output_format: &str) -> Result<()> {
         let config = self.engine.get_config().await;
         if !config.is_configured() {
-            print_warn("MICRODRAGON is not configured. Run 'microdragon setup' first.");
-            return Ok(());
+            return self.offer_inline_setup("ask").await;
         }
 
-        let mut spinner = Spinner::new("Thinking");
+        let spinner = Spinner::new("Thinking");
         let result = self.engine.process_command(input).await?;
         spinner.succeed("Done");
 
@@ -673,8 +671,7 @@ impl MicrodragonCli {
     async fn run_streaming(&self, input: &str) -> Result<()> {
         let config = self.engine.get_config().await;
         if !config.is_configured() {
-            print_warn("MICRODRAGON is not configured. Run 'microdragon setup' first.");
-            return Ok(());
+            return self.offer_inline_setup("streaming").await;
         }
 
         let (tx, rx) = tokio::sync::mpsc::channel::<String>(512);
@@ -745,15 +742,52 @@ impl MicrodragonCli {
             }
 
             ConfigCommands::SetKey { provider, key } => {
-                match provider.to_lowercase().as_str() {
-                    "anthropic" => config.ai.providers.anthropic_api_key = Some(key),
-                    "openai" => config.ai.providers.openai_api_key = Some(key),
-                    "groq" => config.ai.providers.groq_api_key = Some(key),
-                    "openrouter" => config.ai.providers.openrouter_api_key = Some(key),
-                    _ => { eprintln!("{} Unknown provider", Theme::error_str("✗")); return Ok(()); }
+                let provider_lower = provider.to_lowercase();
+                match provider_lower.as_str() {
+                    "anthropic" => {
+                        config.ai.providers.anthropic_api_key = Some(key);
+                        config.ai.active_provider = crate::config::providers::ModelProvider::Anthropic;
+                    }
+                    "openai" => {
+                        config.ai.providers.openai_api_key = Some(key);
+                        config.ai.active_provider = crate::config::providers::ModelProvider::OpenAI;
+                    }
+                    "groq" => {
+                        config.ai.providers.groq_api_key = Some(key);
+                        config.ai.active_provider = crate::config::providers::ModelProvider::Groq;
+                    }
+                    "openrouter" => {
+                        config.ai.providers.openrouter_api_key = Some(key);
+                        config.ai.active_provider = crate::config::providers::ModelProvider::OpenRouter;
+                    }
+                    "telegram" => {
+                        config.social.telegram_bot_token = Some(key);
+                        config.social.telegram_enabled = true;
+                    }
+                    "discord" => {
+                        config.social.discord_bot_token = Some(key);
+                        config.social.discord_enabled = true;
+                    }
+                    "github" => {
+                        std::env::set_var("GITHUB_TOKEN", &key);
+                        println!("{} GitHub token set (session only — add GITHUB_TOKEN to your .env for persistence)",
+                            Theme::success_str("✓"));
+                        return Ok(());
+                    }
+                    "brave" => {
+                        std::env::set_var("BRAVE_SEARCH_API_KEY", &key);
+                        println!("{} Brave Search key set (session only — add BRAVE_SEARCH_API_KEY to .env for persistence)",
+                            Theme::success_str("✓"));
+                        return Ok(());
+                    }
+                    _ => {
+                        print_warn(&format!("Unknown provider '{}'. Valid: groq, openai, anthropic, openrouter, telegram, discord, github, brave", provider));
+                        return Ok(());
+                    }
                 }
                 self.engine.update_config(config).await?;
-                println!("{} API key saved for {}", Theme::success_str("✓"), provider);
+                print_ok(&format!("✓ {} API key saved — ready to use immediately.", provider));
+                println!("  Active provider set to: {}", provider);
             }
 
             ConfigCommands::Model { model_name } => {
@@ -798,7 +832,7 @@ impl MicrodragonCli {
                     "Generate complete, production-ready {} code for: {}\n\nRequirements:\n- Include all imports\n- Full error handling (no panic, no unwrap)\n- Inline comments explaining non-obvious logic\n- A runnable usage example at the bottom\n- No placeholder comments like TODO or 'add logic here'",
                     lang_hint, description.join(" ")
                 );
-                let mut spinner = Spinner::new(&format!("Generating {} code", lang_hint));
+                let spinner = Spinner::new(&format!("Generating {} code", lang_hint));
                 let result = self.engine.process_command(&prompt).await?;
                 spinner.succeed("Code ready");
 
@@ -820,7 +854,7 @@ impl MicrodragonCli {
                     "Debug this {} code from '{}':\n\n```\n{}\n```\n\nFor each bug found:\n- SEVERITY: [critical/high/medium/low]\n- LINE: line number\n- BUG: what is wrong\n- FIX: the corrected code\n\nThen provide the complete fixed file.",
                     lang, file, code
                 );
-                let mut spinner = Spinner::new(&format!("Debugging {}", file));
+                let spinner = Spinner::new(&format!("Debugging {}", file));
                 let result = self.engine.process_command(&prompt).await?;
                 spinner.succeed("Debug complete");
                 markdown::render(&result.response);
@@ -832,7 +866,7 @@ impl MicrodragonCli {
                     "Review this code from '{}':\n\n```\n{}\n```\n\nProvide:\n## Code Quality\n## Security Issues\n## Performance Issues\n## Improvement Suggestions\n## Overall Score (1-10)",
                     file, code
                 );
-                let mut spinner = Spinner::new(&format!("Reviewing {}", file));
+                let spinner = Spinner::new(&format!("Reviewing {}", file));
                 let result = self.engine.process_command(&prompt).await?;
                 spinner.succeed("Review complete");
                 markdown::render(&result.response);
@@ -848,7 +882,7 @@ impl MicrodragonCli {
                     "Write comprehensive tests for:\n\n{}\n\nInclude: unit tests, edge cases, error cases. Make them immediately runnable.",
                     code
                 );
-                let mut spinner = Spinner::new("Writing tests");
+                let spinner = Spinner::new("Writing tests");
                 let result = self.engine.process_command(&prompt).await?;
                 spinner.succeed("Tests written");
                 markdown::render(&result.response);
@@ -867,7 +901,7 @@ impl MicrodragonCli {
     }
 
     async fn handle_research(&self, query: &str, sources: u32, output_file: Option<String>) -> Result<()> {
-        let mut spinner = Spinner::new(&format!("Researching: {}", &query[..query.len().min(40)]));
+        let spinner = Spinner::new(&format!("Researching: {}", &query[..query.len().min(40)]));
 
         let prompt = format!(
             "Research this topic thoroughly: {}\n\nStructure your response exactly as:\n\n# Executive Summary\n(2-3 sentences)\n\n## Key Findings\n(numbered, most important first)\n\n## Detailed Analysis\n(deep dive into {} key areas)\n\n## Sources & References\n(cite specific sources, papers, or experts)\n\n## Conclusion\n(what to do with this information)",
@@ -962,7 +996,7 @@ impl MicrodragonCli {
     async fn handle_business(&self, action: BusinessCommands) -> Result<()> {
         match action {
             BusinessCommands::Market { symbol, interval } => {
-                let mut spinner = Spinner::new(&format!("Pulling market data for {}", symbol));
+                let spinner = Spinner::new(&format!("Pulling market data for {}", symbol));
                 let prompt = format!(
                     "Market analysis for {} (interval: {}).\n\nStructure as:\n\n## {} Market Analysis\n\n### Price Action\n(current trend, key levels)\n\n### Technical Indicators\n- RSI:\n- MACD:\n- Bollinger Bands:\n\n### Support & Resistance\n(specific price levels)\n\n### Sentiment\n(market sentiment + news impact)\n\n### Signal\n**DIRECTION**: [LONG/SHORT/NEUTRAL]\n**Confidence**: [%]\n**Entry**: [price]\n**Stop Loss**: [price]\n**Target**: [price]\n\n> Not financial advice. Past performance ≠ future results.",
                     symbol, interval, symbol
@@ -972,14 +1006,14 @@ impl MicrodragonCli {
                 markdown::render(&result.response);
             }
             BusinessCommands::Portfolio => {
-                let mut spinner = Spinner::new("Analysing portfolio");
+                let spinner = Spinner::new("Analysing portfolio");
                 let prompt = "Analyse my investment portfolio.\n\n## Portfolio Analysis\n\n### Diversification Score\n### Risk Assessment\n### Sector Exposure\n### Rebalancing Recommendations\n### Top 3 Actions to Take Now";
                 let result = self.engine.process_command(prompt).await?;
                 spinner.succeed("Done");
                 markdown::render(&result.response);
             }
             BusinessCommands::Risk { symbol } => {
-                let mut spinner = Spinner::new(&format!("Risk analysis for {}", symbol));
+                let spinner = Spinner::new(&format!("Risk analysis for {}", symbol));
                 let prompt = format!(
                     "Risk analysis for {}.\n\n## Risk Report: {}\n\n### Volatility\n### Beta\n### Max Drawdown\n### Risk-Adjusted Return (Sharpe)\n### Risk Rating: [LOW/MEDIUM/HIGH/EXTREME]",
                     symbol, symbol
@@ -995,7 +1029,7 @@ impl MicrodragonCli {
     async fn handle_automate(&self, action: AutomateCommands) -> Result<()> {
         match action {
             AutomateCommands::Browser { task, url, headless } => {
-                let mut spinner = Spinner::new("Building browser automation script");
+                let spinner = Spinner::new("Building browser automation script");
                 let prompt = format!(
                     "Write a complete Playwright (Python) automation script to: {}\n{}\nHeadless: {}\n\nRequirements:\n- Import playwright.sync_api\n- Full error handling with try/except\n- Screenshots on failure\n- Print status at each step\n- Complete, immediately runnable code",
                     task.join(" "),
@@ -1007,7 +1041,7 @@ impl MicrodragonCli {
                 markdown::render(&result.response);
             }
             AutomateCommands::Desktop { task } => {
-                let mut spinner = Spinner::new("Building desktop automation script");
+                let spinner = Spinner::new("Building desktop automation script");
                 let prompt = format!(
                     "Write a complete PyAutoGUI script to: {}\n\nRequirements:\n- Full imports\n- Safety delay (pyautogui.PAUSE = 0.5)\n- try/except with cleanup\n- Print progress at each step\n- Failsafe enabled (pyautogui.FAILSAFE = True)",
                     task.join(" ")
@@ -1037,7 +1071,7 @@ impl MicrodragonCli {
                         .map(|p| p.join("microdragon_document.docx").to_string_lossy().to_string())
                         .unwrap_or_else(|_| "document.docx".to_string())
                 });
-                let mut spinner = Spinner::new("Generating Word document content…");
+                let spinner = Spinner::new("Generating Word document content…");
                 let prompt = format!(
                     "Write the full content for a Word document titled: {}
 
@@ -1064,7 +1098,7 @@ impl MicrodragonCli {
                         .map(|p| p.join("microdragon_spreadsheet.xlsx").to_string_lossy().to_string())
                         .unwrap_or_else(|_| "spreadsheet.xlsx".to_string())
                 });
-                let mut spinner = Spinner::new("Generating spreadsheet data…");
+                let spinner = Spinner::new("Generating spreadsheet data…");
                 let prompt = format!(
                     "Generate spreadsheet data for: {}
 
@@ -1093,7 +1127,7 @@ Item 1|100|2026-01-01|Paid
                         .map(|p| p.join("microdragon_report.pdf").to_string_lossy().to_string())
                         .unwrap_or_else(|_| "report.pdf".to_string())
                 });
-                let mut spinner = Spinner::new("Generating PDF content…");
+                let spinner = Spinner::new("Generating PDF content…");
                 let result = self.engine.process_command(&format!(
                     "Write a comprehensive, professional report on: {}
                      Use # for title, ## for sections, - for bullets. Be thorough.", task
@@ -1115,7 +1149,7 @@ Item 1|100|2026-01-01|Paid
                         .map(|p| p.join("microdragon_presentation.pptx").to_string_lossy().to_string())
                         .unwrap_or_else(|_| "presentation.pptx".to_string())
                 });
-                let mut spinner = Spinner::new("Generating presentation…");
+                let spinner = Spinner::new("Generating presentation…");
                 let result = self.engine.process_command(&format!(
                     "Create a {}-slide presentation on: {}
 
@@ -1135,7 +1169,7 @@ Item 1|100|2026-01-01|Paid
             }
 
             DocumentCommands::Read { path } => {
-                let mut spinner = Spinner::new(&format!("Reading {}…", path));
+                let spinner = Spinner::new(&format!("Reading {}…", path));
                 let content = crate::tools::filesystem::read_file(&path)?;
                 spinner.succeed("File read");
                 let prompt = format!("Analyse and summarise this document:
@@ -1146,7 +1180,7 @@ Item 1|100|2026-01-01|Paid
             }
 
             DocumentCommands::Install => {
-                let mut spinner = Spinner::new("Installing document dependencies…");
+                let spinner = Spinner::new("Installing document dependencies…");
                 let result = DocumentModule::install_deps().await?;
                 spinner.succeed("Done");
                 println!("{}", result.stdout);
@@ -1169,7 +1203,7 @@ Item 1|100|2026-01-01|Paid
                         .map(|p| p.join("microdragon_design.html").to_string_lossy().to_string())
                         .unwrap_or_else(|_| "design.html".to_string())
                 });
-                let mut spinner = Spinner::new("Generating HTML design…");
+                let spinner = Spinner::new("Generating HTML design…");
                 let result = self.engine.process_command(&format!(
                     "Generate a complete, beautiful HTML page with embedded CSS for: {}
                      Style: {}
@@ -1195,7 +1229,7 @@ Item 1|100|2026-01-01|Paid
                         .map(|p| p.join("microdragon_graphic.svg").to_string_lossy().to_string())
                         .unwrap_or_else(|_| "graphic.svg".to_string())
                 });
-                let mut spinner = Spinner::new("Generating SVG graphic…");
+                let spinner = Spinner::new("Generating SVG graphic…");
                 let result = self.engine.process_command(&format!(
                     "Generate a clean, beautiful SVG graphic for: {}
                      Requirements:
@@ -1219,7 +1253,7 @@ Item 1|100|2026-01-01|Paid
                         .map(|p| p.join("microdragon_image.png").to_string_lossy().to_string())
                         .unwrap_or_else(|_| "image.png".to_string())
                 });
-                let mut spinner = Spinner::new("Creating image with Pillow…");
+                let spinner = Spinner::new("Creating image with Pillow…");
                 let result = DesignModule::create_image(&task, &outpath, width, height).await?;
                 spinner.succeed("Done");
                 if result.success {
@@ -1262,7 +1296,7 @@ Item 1|100|2026-01-01|Paid
                     println!("{}", content);
                 } else {
                     // AI summarises large files
-                    let mut spinner = Spinner::new("Analysing file with AI…");
+                    let spinner = Spinner::new("Analysing file with AI…");
                     let result = self.engine.process_command(&format!(
                         "Analyse this file '{}' and provide a structured summary:
 
@@ -1280,7 +1314,7 @@ Item 1|100|2026-01-01|Paid
                 } else {
                     println!("  Enter content (press Ctrl+D or Ctrl+Z when done):");
                     let mut buf = String::new();
-                    std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
+                    { use std::io::Read; std::io::stdin().read_to_string(&mut buf)?; }
                     buf
                 };
                 filesystem::write_file(&path, &text)?;
@@ -1294,7 +1328,7 @@ Item 1|100|2026-01-01|Paid
 
             FilesCommands::Find { root, pattern } => {
                 let root_dir = root.unwrap_or_else(|| ".".to_string());
-                let mut spinner = Spinner::new(&format!("Searching for '{}' in {}…", pattern, root_dir));
+                let spinner = Spinner::new(&format!("Searching for '{}' in {}…", pattern, root_dir));
                 let results = filesystem::find_files(&root_dir, &pattern, 50)?;
                 spinner.succeed(&format!("Found {} file(s)", results.len()));
                 for r in &results {
@@ -1335,7 +1369,7 @@ Item 1|100|2026-01-01|Paid
         match action {
             VoiceCommands::Say { text } => {
                 let speech = text.join(" ");
-                let mut spinner = Spinner::new("Speaking…");
+                let spinner = Spinner::new("Speaking…");
                 let result = VoiceModule::speak(&speech, &provider).await?;
                 spinner.succeed("Done");
                 if !result.success {
@@ -1345,7 +1379,7 @@ Item 1|100|2026-01-01|Paid
             }
 
             VoiceCommands::Listen { duration } => {
-                let mut spinner = Spinner::new(&format!("Listening for {}s…", duration));
+                let spinner = Spinner::new(&format!("Listening for {}s…", duration));
                 let result = VoiceModule::listen(duration, &provider).await?;
                 spinner.succeed("Transcribed");
                 if result.success && !result.stdout.trim().is_empty() {
@@ -1367,7 +1401,7 @@ Item 1|100|2026-01-01|Paid
             }
 
             VoiceCommands::Install => {
-                let mut spinner = Spinner::new("Installing voice dependencies…");
+                let spinner = Spinner::new("Installing voice dependencies…");
                 let result = VoiceModule::install_deps().await?;
                 spinner.succeed("Done");
                 println!("{}", result.stdout);
@@ -1410,7 +1444,7 @@ Item 1|100|2026-01-01|Paid
             }
 
             GameCommands::Install => {
-                let mut spinner = Spinner::new("Installing gaming dependencies…");
+                let spinner = Spinner::new("Installing gaming dependencies…");
                 let result = GamingModule::install_deps().await?;
                 spinner.succeed("Done");
                 println!("{}", result.stdout);
@@ -1427,7 +1461,7 @@ Item 1|100|2026-01-01|Paid
 
         match action {
             GithubCommands::Review { pr_url, post } => {
-                let mut spinner = Spinner::new("Fetching PR and running AI review…");
+                let spinner = Spinner::new("Fetching PR and running AI review…");
                 let result = GitHubModule::review_pr(&pr_url, post).await?;
                 spinner.succeed("Review complete");
                 markdown::render(&result.stdout);
@@ -1439,7 +1473,7 @@ Item 1|100|2026-01-01|Paid
                     print_warn("Format: microdragon github repo owner/repo-name");
                     return Ok(());
                 }
-                let mut spinner = Spinner::new("Fetching repo stats…");
+                let spinner = Spinner::new("Fetching repo stats…");
                 let result = GitHubModule::repo_overview(parts[0], parts[1]).await?;
                 spinner.succeed("Done");
                 markdown::render(&result.stdout);
@@ -1452,7 +1486,7 @@ Item 1|100|2026-01-01|Paid
                     return Ok(());
                 }
                 let issue_title = title.join(" ");
-                let mut spinner = Spinner::new("Generating issue content…");
+                let spinner = Spinner::new("Generating issue content…");
                 let result = self.engine.process_command(&format!(
                     "Write a GitHub issue for the repo {}/{}.
                      Title: {}
@@ -1489,6 +1523,101 @@ Item 1|100|2026-01-01|Paid
                 print_warn(&format!("Could not open '{}': {}", target, result.stderr));
             }
         }
+        Ok(())
+    }
+
+    /// Called when a command is run but no API key is configured.
+    /// Instead of dying silently, offer to set it up right now.
+    async fn offer_inline_setup(&self, context: &str) -> Result<()> {
+        println!();
+        print_warn("No API key configured.");
+        println!();
+        println!("  You can configure MICRODRAGON right now without restarting.");
+        println!();
+        println!("  Option A — run the full setup wizard:");
+        println!("    microdragon setup");
+        println!();
+        println!("  Option B — set a key instantly:");
+        println!("    microdragon config set-key groq gsk_...");
+        println!("    microdragon config set-key openai sk-...");
+        println!("    microdragon config set-key anthropic sk-ant-...");
+        println!();
+
+        // Offer inline key entry right now
+        print!("  Enter your API key now (or press Enter to skip): ");
+        let _ = std::io::Write::flush(&mut std::io::stdout());
+        let mut key = String::new();
+        { use std::io::BufRead; std::io::BufReader::new(std::io::stdin()).read_line(&mut key)?; }
+        let key = key.trim().to_string();
+
+        if !key.is_empty() {
+            // Auto-detect provider from key prefix
+            let mut config = self.engine.get_config().await;
+            let detected_provider = if key.starts_with("gsk_") {
+                config.ai.active_provider = crate::config::providers::ModelProvider::Groq;
+                config.ai.providers.groq_api_key = Some(key.clone());
+                "Groq"
+            } else if key.starts_with("sk-ant-") {
+                config.ai.active_provider = crate::config::providers::ModelProvider::Anthropic;
+                config.ai.providers.anthropic_api_key = Some(key.clone());
+                "Anthropic"
+            } else if key.starts_with("sk-or-") {
+                config.ai.active_provider = crate::config::providers::ModelProvider::OpenRouter;
+                config.ai.providers.openrouter_api_key = Some(key.clone());
+                "OpenRouter"
+            } else if key.starts_with("sk-") {
+                config.ai.active_provider = crate::config::providers::ModelProvider::OpenAI;
+                config.ai.providers.openai_api_key = Some(key.clone());
+                "OpenAI"
+            } else {
+                // Unknown prefix — ask which provider
+                println!("  Key prefix not recognised. Which provider?");
+                println!("  1) Groq  2) OpenAI  3) Anthropic  4) OpenRouter  5) Custom");
+                print!("  Choice [1-5]: ");
+                let _ = std::io::Write::flush(&mut std::io::stdout());
+                let mut choice = String::new();
+                { use std::io::BufRead; std::io::BufReader::new(std::io::stdin()).read_line(&mut choice)?; }
+                match choice.trim() {
+                    "2" => {
+                        config.ai.active_provider = crate::config::providers::ModelProvider::OpenAI;
+                        config.ai.providers.openai_api_key = Some(key.clone());
+                        "OpenAI"
+                    }
+                    "3" => {
+                        config.ai.active_provider = crate::config::providers::ModelProvider::Anthropic;
+                        config.ai.providers.anthropic_api_key = Some(key.clone());
+                        "Anthropic"
+                    }
+                    "4" => {
+                        config.ai.active_provider = crate::config::providers::ModelProvider::OpenRouter;
+                        config.ai.providers.openrouter_api_key = Some(key.clone());
+                        "OpenRouter"
+                    }
+                    "5" => {
+                        print!("  Enter endpoint URL: ");
+                        let _ = std::io::Write::flush(&mut std::io::stdout());
+                        let mut ep = String::new();
+                        { use std::io::BufRead; std::io::BufReader::new(std::io::stdin()).read_line(&mut ep)?; }
+                        config.ai.providers.custom_endpoint = Some(ep.trim().to_string());
+                        config.ai.active_provider = crate::config::providers::ModelProvider::Custom;
+                        "Custom"
+                    }
+                    _ => {
+                        config.ai.active_provider = crate::config::providers::ModelProvider::Groq;
+                        config.ai.providers.groq_api_key = Some(key.clone());
+                        "Groq"
+                    }
+                }
+            };
+
+            self.engine.update_config(config).await?;
+            print_ok(&format!("✓ {} API key saved — you're ready.", detected_provider));
+            println!("  Re-run your command now.");
+        } else {
+            println!("  Skipped. Run 'microdragon setup' when ready.");
+        }
+
+        println!();
         Ok(())
     }
 

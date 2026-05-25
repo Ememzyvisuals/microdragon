@@ -157,7 +157,7 @@ impl DesignModule {
 
     /// Create a design using Pillow (programmatic image)
     pub async fn create_image(task: &str, output_path: &str, width: u32, height: u32) -> Result<ShellResult> {
-        let script = module_script("apps/src/engine.py");
+        let _script = module_script("apps/src/engine.py");
         let cmd = format!(
             r#"{} -c "
 import asyncio, sys
@@ -199,7 +199,7 @@ pub struct VoiceModule;
 impl VoiceModule {
     /// Speak text aloud using configured TTS
     pub async fn speak(text: &str, ai_provider: &str) -> Result<ShellResult> {
-        let script = module_script("voice/src/engine.py");
+        let _script = module_script("voice/src/engine.py");
         let cmd = format!(
             r#"{} -c "
 import asyncio, sys
@@ -221,7 +221,7 @@ asyncio.run(main())
 
     /// Listen to microphone and transcribe
     pub async fn listen(duration_secs: u32, ai_provider: &str) -> Result<ShellResult> {
-        let script = module_script("voice/src/engine.py");
+        let _script = module_script("voice/src/engine.py");
         let cmd = format!(
             r#"{} -c "
 import asyncio, sys
@@ -274,7 +274,7 @@ pub struct GamingModule;
 impl GamingModule {
     /// Start MICRODRAGON playing a game
     pub async fn play(game_name: &str, duration_secs: u32) -> Result<ShellResult> {
-        let script = module_script("gaming/src/cli_commands.py");
+        let _script = module_script("gaming/src/cli_commands.py");
         let cmd = format!(
             r#"{} -c "
 import asyncio, sys

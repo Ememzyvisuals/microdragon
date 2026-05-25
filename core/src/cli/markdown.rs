@@ -45,6 +45,7 @@ pub fn render_with_indent(text: &str, indent: &str) {
     let mut in_code_block = false;
     let mut code_lang = String::new();
     let mut code_buf: Vec<String> = Vec::new();
+    #[allow(unused_assignments)]
     let mut list_counter = 0u32;
     let mut prev_blank = true;
 

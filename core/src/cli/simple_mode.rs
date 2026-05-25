@@ -145,6 +145,49 @@ impl SimpleMode {
     }
 
     pub async fn run(&mut self) -> Result<()> {
+        // ── Inline setup detection ────────────────────────────────────────────
+        // Run setup wizard right here if not configured — no need to exit first.
+        {
+            let config = self.engine.get_config().await;
+            if !config.is_configured() {
+                println!();
+                if CAPS.ansi_color {
+                    use crossterm::style::Stylize;
+                    println!("  {} Welcome to MICRODRAGON",
+                        "🐉".to_string().with(Theme::GREEN));
+                    println!("  {} No API key configured yet.",
+                        "!".to_string().with(Theme::EMBER));
+                } else {
+                    println!("  Welcome to MICRODRAGON");
+                    println!("  No API key configured yet.");
+                }
+                println!("  Setting you up now — this only takes 30 seconds.");
+                println!();
+
+                let wizard = crate::cli::setup::SetupWizard::new(
+                    Arc::clone(&self.engine)
+                );
+                wizard.run().await?;
+
+                // Re-check
+                let config = self.engine.get_config().await;
+                if !config.is_configured() {
+                    println!();
+                    if CAPS.ansi_color {
+                        use crossterm::style::Stylize;
+                        println!("  {} Setup skipped. Commands requiring AI won't work.",
+                            "!".to_string().with(Theme::EMBER));
+                        println!("  {} Run {} anytime to configure.",
+                            "→".to_string().with(Theme::GREEN),
+                            "microdragon setup".to_string().with(Theme::GREEN));
+                    } else {
+                        println!("  Setup skipped. Run 'microdragon setup' to configure.");
+                    }
+                    println!();
+                }
+            }
+        }
+
         self.print_header();
 
         loop {
@@ -197,7 +240,7 @@ impl SimpleMode {
             // ── 9-Phase Agentic Pipeline — live phase display ─────────────
             println!();
 
-            let phase_names: [&str; 9] = [
+            let _phase_names: [&str; 9] = [
                 "PERCEIVE", "PLAN", "GATHER", "SYNTHESIZE",
                 "REASON", "REFLECT", "REFINE", "FORMAT", "COMMIT",
             ];

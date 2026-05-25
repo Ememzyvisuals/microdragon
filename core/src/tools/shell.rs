@@ -65,7 +65,7 @@ pub async fn run_in_dir(command: &str, working_dir: Option<&str>) -> Result<Shel
     let start = Instant::now();
 
     // Parse command into program + args
-    let (program, args) = parse_command(command);
+    let (program, _args) = parse_command(command);
 
     let mut cmd = if cfg!(target_os = "windows") {
         let mut c = Command::new("cmd");

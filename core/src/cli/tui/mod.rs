@@ -38,14 +38,13 @@ use ratatui::{
     backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
-    text::{Line, Span, Text},
-    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap},
+    text::{Line, Span},
+    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
     Frame, Terminal,
 };
-use tokio::sync::mpsc;
 
 use crate::engine::MicrodragonEngine;
-use events::{AgentEvent, EventKind, EventRx, EventTx};
+use crate::events::{AgentEvent, EventKind, EventRx, EventTx};
 
 // ─── ASCII Logo ────────────────────────────────────────────────────────────────
 
@@ -62,19 +61,19 @@ const LOGO_SUBTITLE: &str = "  Distributed Intelligence Network  ·  Cognitive A
 
 // ─── Colour palette ────────────────────────────────────────────────────────────
 
-const C_BG:       Color = Color::Rgb { r: 12,  g: 12,  b: 16  };   // near-black
-const C_SURFACE:  Color = Color::Rgb { r: 20,  g: 20,  b: 28  };   // panel bg
-const C_BORDER:   Color = Color::Rgb { r: 45,  g: 45,  b: 60  };   // subtle border
-const C_GREEN:    Color = Color::Rgb { r: 0,   g: 255, b: 136 };   // brand green
-const C_EMBER:    Color = Color::Rgb { r: 255, g: 160, b: 60  };   // brand ember
-const C_FIRE:     Color = Color::Rgb { r: 255, g: 68,  b: 68  };   // error red
-const C_CYAN:     Color = Color::Rgb { r: 80,  g: 220, b: 255 };   // tool calls
-const C_BLUE:     Color = Color::Rgb { r: 100, g: 160, b: 255 };   // file reads
-const C_YELLOW:   Color = Color::Rgb { r: 255, g: 220, b: 80  };   // web search
-const C_PURPLE:   Color = Color::Rgb { r: 180, g: 120, b: 255 };   // memory
-const C_DIM:      Color = Color::Rgb { r: 80,  g: 80,  b: 100 };   // dim text
-const C_WHITE:    Color = Color::Rgb { r: 210, g: 210, b: 220 };   // body text
-const C_TITLE:    Color = Color::Rgb { r: 240, g: 240, b: 255 };   // headings
+const C_BG:       Color = Color::Rgb(12, 12, 16);   // near-black
+const C_SURFACE:  Color = Color::Rgb(20, 20, 28);   // panel bg
+const C_BORDER:   Color = Color::Rgb(45, 45, 60);   // subtle border
+const C_GREEN:    Color = Color::Rgb(0, 255, 136);   // brand green
+const C_EMBER:    Color = Color::Rgb(255, 160, 60);   // brand ember
+const C_FIRE:     Color = Color::Rgb(255, 68, 68);   // error red
+const C_CYAN:     Color = Color::Rgb(80, 220, 255);   // tool calls
+const C_BLUE:     Color = Color::Rgb(100, 160, 255);   // file reads
+const C_YELLOW:   Color = Color::Rgb(255, 220, 80);   // web search
+const C_PURPLE:   Color = Color::Rgb(180, 120, 255);   // memory
+const C_DIM:      Color = Color::Rgb(80, 80, 100);   // dim text
+const C_WHITE:    Color = Color::Rgb(210, 210, 220);   // body text
+const C_TITLE:    Color = Color::Rgb(240, 240, 255);   // headings
 
 // ─── Slash commands ────────────────────────────────────────────────────────────
 
@@ -86,6 +85,8 @@ struct SlashCommand {
 
 const SLASH_COMMANDS: &[SlashCommand] = &[
     SlashCommand { name: "/help",     description: "Show all commands and shortcuts" },
+    SlashCommand { name: "/setup",    description: "Configure API key and provider (run anytime)" },
+    SlashCommand { name: "/key",      description: "Set API key instantly: /key gsk_... or /key sk-..." },
     SlashCommand { name: "/clear",    description: "Clear the conversation log" },
     SlashCommand { name: "/status",   description: "Show engine and provider status" },
     SlashCommand { name: "/memory",   description: "Show recent conversation memory" },
@@ -227,6 +228,36 @@ impl App {
 // ─── Main TUI entry point ─────────────────────────────────────────────────────
 
 pub async fn run(engine: Arc<MicrodragonEngine>) -> Result<()> {
+    // ── Inline setup detection ────────────────────────────────────────────────
+    // If not configured, run the setup wizard right here before entering the TUI.
+    // User never has to exit and run a separate command.
+    let config = engine.get_config().await;
+    if !config.is_configured() {
+        println!();
+        println!("  🐉  Welcome to MICRODRAGON");
+        println!("  No API key configured. Let's fix that right now.");
+        println!("  ─────────────────────────────────────────────────");
+        println!();
+
+        let wizard = crate::cli::setup::SetupWizard::new(Arc::clone(&engine));
+        wizard.run().await?;
+
+        // Re-check after setup
+        let config = engine.get_config().await;
+        if !config.is_configured() {
+            println!();
+            println!("  Setup skipped. Run 'microdragon setup' to configure.");
+            println!("  Launching in read-only mode…");
+            println!();
+        } else {
+            println!();
+            println!("  ✓ Configuration saved. Launching MICRODRAGON…");
+            println!();
+            // small pause so user sees the success message
+            tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
+        }
+    }
+
     // Setup terminal
     enable_raw_mode()?;
     let mut stdout = std::io::stdout();
@@ -261,11 +292,26 @@ async fn run_app(
     }
     app.push(EventKind::Thought, LOGO_SUBTITLE);
     app.push(EventKind::Divider, "─".repeat(88));
-    app.push(EventKind::Done, format!(
-        "Provider: {}  ·  Model: {}  ·  9-phase agentic pipeline ready",
-        app.provider, app.model
-    ));
-    app.push(EventKind::Thought, "  Type your task below, or / for commands. The agent will plan, gather, reason, and act.");
+
+    let config = app.engine.get_config().await;
+    if config.is_configured() {
+        app.push(EventKind::Done, format!(
+            "Provider: {}  ·  Model: {}  ·  9-phase agentic pipeline ready",
+            app.provider, app.model
+        ));
+        app.push(EventKind::Thought, "  Type your task below, or / for commands.");
+    } else {
+        app.push(EventKind::Warning,
+            "Not configured — no API key set yet.");
+        app.push(EventKind::Thought,
+            "  Type  /key gsk_xxxx       to add a Groq key  (free at console.groq.com)");
+        app.push(EventKind::Thought,
+            "  Type  /key sk-ant-xxxx    to add an Anthropic key");
+        app.push(EventKind::Thought,
+            "  Type  /key sk-xxxx        to add an OpenAI key");
+        app.push(EventKind::Thought,
+            "  Type  /setup              to run the full setup wizard");
+    }
     app.push(EventKind::Divider, "─".repeat(88));
 
     let tick_rate = Duration::from_millis(80);
@@ -531,6 +577,65 @@ async fn execute_slash_command(app: &mut App, cmd: &str) {
             app.should_quit = true;
         }
 
+        "/setup" => {
+            // Exit TUI, run setup, then re-enter TUI
+            app.should_quit = true;
+            app.push(EventKind::Thought, "Exiting to run setup wizard…");
+            app.push(EventKind::Thought, "After setup completes, run 'microdragon' to relaunch.");
+            // Mark that we should run setup on exit
+            // We do this by pushing a special sentinel — the main() handles it
+            app.push(EventKind::Done, "RUN_SETUP_ON_EXIT");
+        }
+
+        cmd if cmd.starts_with("/key ") => {
+            let raw_key = cmd.trim_start_matches("/key ").trim().to_string();
+            if raw_key.is_empty() {
+                app.push(EventKind::Warning, "Usage: /key <your_api_key>");
+                app.push(EventKind::Thought, "Example: /key gsk_xxxx  or  /key sk-ant-xxxx");
+            } else {
+                let engine = Arc::clone(&app.engine);
+                let tx = app.event_tx.clone();
+                tokio::spawn(async move {
+                    let mut config = engine.get_config().await;
+                    let provider_name = if raw_key.starts_with("gsk_") {
+                        config.ai.active_provider = crate::config::providers::ModelProvider::Groq;
+                        config.ai.providers.groq_api_key = Some(raw_key.clone());
+                        "Groq"
+                    } else if raw_key.starts_with("sk-ant-") {
+                        config.ai.active_provider = crate::config::providers::ModelProvider::Anthropic;
+                        config.ai.providers.anthropic_api_key = Some(raw_key.clone());
+                        "Anthropic"
+                    } else if raw_key.starts_with("sk-or-") {
+                        config.ai.active_provider = crate::config::providers::ModelProvider::OpenRouter;
+                        config.ai.providers.openrouter_api_key = Some(raw_key.clone());
+                        "OpenRouter"
+                    } else if raw_key.starts_with("sk-") {
+                        config.ai.active_provider = crate::config::providers::ModelProvider::OpenAI;
+                        config.ai.providers.openai_api_key = Some(raw_key.clone());
+                        "OpenAI"
+                    } else {
+                        config.ai.providers.groq_api_key = Some(raw_key.clone());
+                        config.ai.active_provider = crate::config::providers::ModelProvider::Groq;
+                        "Groq (assumed)"
+                    };
+                    match engine.update_config(config).await {
+                        Ok(_) => {
+                            let _ = tx.send(AgentEvent::new(
+                                EventKind::Done,
+                                format!("✓ {} key saved — ready immediately. No restart needed.", provider_name)
+                            ));
+                        }
+                        Err(e) => {
+                            let _ = tx.send(AgentEvent::new(
+                                EventKind::Error,
+                                format!("Failed to save key: {}", e)
+                            ));
+                        }
+                    }
+                });
+            }
+        }
+
         "/clear" => {
             app.log.clear();
             app.log_scroll = 0;
@@ -558,25 +663,27 @@ async fn execute_slash_command(app: &mut App, cmd: &str) {
         }
 
         "/status" => {
-            let config = app.engine.get_config().await;
             let health = app.engine.health_check().await;
             app.push(EventKind::Divider, "─".repeat(60));
             app.push(EventKind::Thought, "🐉  MICRODRAGON Status");
-            app.push(EventKind::Done, format!("Provider:   {}", health.provider));
-            app.push(EventKind::Done, format!("Model:      {}", health.model));
-            app.push(EventKind::Done, format!("Configured: {}", health.is_healthy));
-            app.push(EventKind::Done, format!("Memory:     {}", health.memory_ok));
-            app.push(EventKind::Done, format!("Turns:      {}", app.session_turns));
-            app.push(EventKind::Done, format!("Tokens:     {}", app.total_tokens));
+            app.push(if health.is_healthy { EventKind::Done } else { EventKind::Warning },
+                format!("Configured:  {}", if health.is_healthy { "yes ✓" } else { "NO — type /key <your_api_key> to fix now" }));
+            app.push(EventKind::Done, format!("Provider:    {}", health.provider));
+            app.push(EventKind::Done, format!("Model:       {}", health.model));
+            app.push(EventKind::Done, format!("Memory:      {}", if health.memory_ok { "ok" } else { "error" }));
+            app.push(EventKind::Done, format!("Turns:       {}", app.session_turns));
+            app.push(EventKind::Done, format!("Tokens used: {}", app.total_tokens));
             if !app.cost_str().is_empty() {
-                app.push(EventKind::Done, format!("Cost:       {}", app.cost_str()));
+                app.push(EventKind::Done, format!("Est. cost:   {}", app.cost_str()));
             }
-            let pipeline_status = if config.is_configured() {
-                "9-phase agentic pipeline ✓"
-            } else {
-                "not configured — run 'microdragon setup'"
-            };
-            app.push(EventKind::Done, format!("Pipeline:   {}", pipeline_status));
+            if !health.is_healthy {
+                app.push(EventKind::Divider, "─".repeat(60));
+                app.push(EventKind::Warning, "Quick fix — type one of these:");
+                app.push(EventKind::Thought, "  /key gsk_xxxx              (Groq — free)");
+                app.push(EventKind::Thought, "  /key sk-ant-xxxx           (Anthropic)");
+                app.push(EventKind::Thought, "  /key sk-xxxx               (OpenAI)");
+                app.push(EventKind::Thought, "  /setup                     (full wizard)");
+            }
             app.push(EventKind::Divider, "─".repeat(60));
         }
 
@@ -633,23 +740,25 @@ async fn execute_slash_command(app: &mut App, cmd: &str) {
         "/memory" => {
             app.push(EventKind::Divider, "─".repeat(60));
             app.push(EventKind::Thought, "Recent memory (last 5 interactions):");
-            let mem = app.engine.memory.read().await;
-            match mem.get_recent_context(10).await {
-                Ok(ctx) => {
-                    let mut shown = 0;
-                    for msg in ctx.iter().rev() {
-                        if shown >= 5 { break; }
-                        let role = format!("{:?}", msg.role).to_lowercase();
-                        let preview: String = msg.content.chars().take(80).collect();
-                        app.push(EventKind::MemoryRecall, format!("[{}] {}…", role, preview));
-                        shown += 1;
+            // Collect memory BEFORE any mutable borrow of app
+            let memory_lines: Vec<String> = {
+                let mem = app.engine.memory.read().await;
+                match mem.get_recent_context(10).await {
+                    Ok(ctx) => {
+                        ctx.iter().rev().take(5).map(|msg| {
+                            let role = format!("{:?}", msg.role).to_lowercase();
+                            let preview: String = msg.content.chars().take(80).collect();
+                            format!("[{}] {}…", role, preview)
+                        }).collect()
                     }
-                    if shown == 0 {
-                        app.push(EventKind::Thought, "No memory yet. Start a conversation!");
-                    }
+                    Err(_) => vec!["Error reading memory.".to_string()],
                 }
-                Err(_) => {
-                    app.push(EventKind::Warning, "Could not read memory.");
+            }; // lock released here
+            if memory_lines.is_empty() {
+                app.push(EventKind::Thought, "No memory yet. Start a conversation!");
+            } else {
+                for line in memory_lines {
+                    app.push(EventKind::MemoryRecall, line);
                 }
             }
             app.push(EventKind::Divider, "─".repeat(60));

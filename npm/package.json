@@ -35,7 +35,8 @@
   },
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
-    "test": "echo \"Tests run via cargo test\" && exit 0"
+    "test": "node scripts/test.js",
+    "prepublishOnly": "node scripts/build.js"
   },
   "dependencies": {
     "axios": "^1.6.0",

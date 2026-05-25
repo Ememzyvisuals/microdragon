@@ -2,6 +2,7 @@
 // © 2026 EMEMZYVISUALS DIGITALS — Emmanuel Ariyo
 
 mod cli;
+mod events;
 mod engine;
 mod brain;
 mod config;

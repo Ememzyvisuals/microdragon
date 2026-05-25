@@ -20,8 +20,7 @@ tokio           = { version = "1",    features = ["full"] }
 tokio-util      = { version = "0.7",  features = ["codec", "io"] }
 
 # ── HTTP — rustls = pure Rust TLS, works on ALL platforms without OpenSSL ───
-reqwest         = { version = "0.12", default-features = false,
-                    features = ["json", "rustls-tls", "stream", "gzip", "multipart"] }
+reqwest         = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream", "gzip", "multipart"] }
 axum            = { version = "0.7",  features = ["json", "tokio", "http1"] }
 tower           = { version = "0.4",  features = ["full"] }
 tower-http      = { version = "0.5",  features = ["cors", "trace", "compression-full"] }

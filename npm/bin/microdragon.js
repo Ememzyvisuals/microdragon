@@ -9,32 +9,14 @@ const fs = require("fs");
 
 function findBinary() {
     const isWin = process.platform === "win32";
-    const arch  = process.arch; // x64 or arm64
-
-    // Map to the exact filenames the CI release workflow copies into bin/
-    const platformMap = {
-        "win32-x64":    "microdragon-windows-x64.exe",
-        "linux-x64":    "microdragon-linux-x64",
-        "linux-arm64":  "microdragon-linux-arm64",
-        "darwin-x64":   "microdragon-macos-x64",
-        "darwin-arm64": "microdragon-macos-arm64",
-    };
-    const platformKey    = `${process.platform}-${arch}`;
-    const platformBinary = platformMap[platformKey];
-
-    // Generic fallback names (postinstall download path)
-    const genericBin = isWin ? "microdragon.exe" : "microdragon";
-
-    const candidates = [
-        // 1. Bundled in npm package by CI (primary path)
-        platformBinary && path.join(__dirname, platformBinary),
-        // 2. Downloaded by postinstall to bin/ with generic name
-        path.join(__dirname, genericBin),
-        // 3. Built from source
-        path.join(__dirname, "..", "..", "core", "target", "release", genericBin),
-    ].filter(Boolean);
-
-    return candidates.find(p => fs.existsSync(p)) || genericBin;
+    const bin   = isWin ? "microdragon.exe" : "microdragon";
+    return [
+        // 1. Downloaded by postinstall (npm install -g)
+        path.join(__dirname, bin),
+        // 2. Built from source (git clone + cargo build)
+        path.join(__dirname, "..", "..", "core", "target", "release", bin),
+        // 3. PATH — user installed manually
+    ].find(p => fs.existsSync(p)) || bin;
 }
 
 const result = spawnSync(findBinary(), process.argv.slice(2), {
@@ -60,4 +42,3 @@ if (result.error) {
     process.exit(1);
 }
 process.exit(result.status ?? 0);
-

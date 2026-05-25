@@ -29,7 +29,7 @@ use crate::memory::MemoryStore;
 use crate::tools::web_search::{WebSearcher, format_for_ai as fmt_search};
 use crate::tools::file_reader;
 use crate::tools::shell;
-use crate::cli::tui::events::{AgentEvent, EventKind, EventTx};
+use crate::events::{AgentEvent, EventKind, EventTx};
 
 // ─── Pipeline Output ─────────────────────────────────────────────────────────
 
