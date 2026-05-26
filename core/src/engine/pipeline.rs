@@ -100,7 +100,7 @@ impl AgenticPipeline {
         &self,
         input: &str,
         context: &[ChatMessage],
-        progress: &dyn Fn(u8, &'static str, &str),
+        progress: &(dyn Fn(u8, &'static str, &str) + Send + Sync),
     ) -> Result<PipelineResult> {
 
         let total_start = Instant::now();
@@ -665,7 +665,7 @@ FORMATTING RULES
 
     fn format_response(
         &self,
-        intent: &ParsedIntent,
+        _intent: &ParsedIntent,
         response: &str,
         tools_used: &[String],
         web_results: usize,
