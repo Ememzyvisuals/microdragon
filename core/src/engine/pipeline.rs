@@ -96,12 +96,15 @@ impl AgenticPipeline {
         }
     }
 
-    pub async fn run(
+    pub async fn run<F>(
         &self,
         input: &str,
         context: &[ChatMessage],
-        progress: &(dyn Fn(u8, &'static str, &str) + Send + Sync),
-    ) -> Result<PipelineResult> {
+        progress: F,
+    ) -> Result<PipelineResult>
+    where
+        F: Fn(u8, &'static str, &str) + Send + Sync + 'static,
+    {
 
         let total_start = Instant::now();
         let mut phases: Vec<PhaseRecord> = Vec::new();

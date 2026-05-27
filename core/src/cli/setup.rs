@@ -14,7 +14,7 @@ use crate::engine::MicrodragonEngine;
 use crate::config::{MicrodragonConfig, providers::ModelProvider};
 use crate::cli::terminal::CAPS;
 use crate::cli::theme::Theme;
-use crate::cli::display::{print_ok, print_err, print_warn, print_info, section, kv, kv_colored, panel};
+use crate::cli::display::{print_ok, print_warn, section, kv, kv_colored, panel};
 use crossterm::style::Color;
 
 pub struct SetupWizard {

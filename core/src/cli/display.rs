@@ -1,7 +1,6 @@
 // microdragon-core/src/cli/display.rs
 // Display helpers — graceful degradation on all terminal types.
 
-use std::io;
 use crossterm::style::{Color, Stylize};
 use crate::cli::terminal::CAPS;
 use crate::cli::animation::Spinner as AnimSpinner;

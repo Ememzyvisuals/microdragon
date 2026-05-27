@@ -21,7 +21,7 @@ use crossterm::{
 use std::io::{self};
 
 use crate::engine::MicrodragonEngine;
-use crate::cli::animation::{Spinner, SpinnerStyle, StatusLine, StatusState, Typewriter};
+use crate::cli::animation::{StatusLine, StatusState, Typewriter};
 use crate::cli::terminal as term;
 
 const WELCOME_RICH: &str = r#"

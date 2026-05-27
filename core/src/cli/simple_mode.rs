@@ -284,7 +284,7 @@ impl SimpleMode {
                 *last = Some(line);
             };
 
-            match self.engine.process_command_with_progress(&full_input, &progress_cb).await {
+            match self.engine.process_command_with_progress(&full_input, progress_cb).await {
                 Ok(result) => {
                     // Clear last phase line, print completion
                     if CAPS.ansi_color {
@@ -431,10 +431,10 @@ impl SimpleMode {
 
 pub fn is_flyer_request(input: &str) -> bool {
     let m = input.to_lowercase();
-    (m.contains("flyer") || m.contains("poster") || m.contains("banner")
+    m.contains("flyer") || m.contains("poster") || m.contains("banner")
         || m.contains("design") && (m.contains("birthday") || m.contains("business")
             || m.contains("event") || m.contains("invitation") || m.contains("invite")
-            || m.contains("party") || m.contains("sale") || m.contains("promo")))
+            || m.contains("party") || m.contains("sale") || m.contains("promo"))
 }
 
 pub fn flyer_clarification_questions(input: &str) -> Vec<(&'static str, &'static str)> {

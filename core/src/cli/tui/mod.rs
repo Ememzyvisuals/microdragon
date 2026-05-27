@@ -541,7 +541,7 @@ async fn submit_task(app: &mut App, input: String) {
             ));
         };
 
-        match engine.process_command_with_progress(&input_clone, &progress_cb).await {
+        match engine.process_command_with_progress(&input_clone, progress_cb).await {
             Ok(result) => {
                 let _ = tx.send(AgentEvent::new(EventKind::Divider, "─".repeat(60)));
                 // Split response into lines for clean display

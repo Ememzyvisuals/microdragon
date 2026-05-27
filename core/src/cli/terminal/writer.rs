@@ -4,13 +4,11 @@
 
 use std::io::{self, Write};
 use crossterm::{
-    execute, queue,
+    execute,
     style::{Color, Print, ResetColor, SetForegroundColor, Attribute, SetAttribute},
     cursor::{Hide, Show, MoveToColumn, MoveUp},
     terminal::{Clear, ClearType},
 };
-use super::caps::TermLevel;
-use super::caps;
 
 pub struct TermWriter {
     pub caps: std::sync::Arc<super::caps::TermCaps>,

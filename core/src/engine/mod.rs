@@ -74,16 +74,19 @@ impl MicrodragonEngine {
 
     /// Process a user command through the full 9-phase agentic pipeline.
     pub async fn process_command(&self, input: &str) -> Result<CommandResult> {
-        self.process_command_with_progress(input, &|_, _, _| {}).await
+        self.process_command_with_progress(input, |_, _, _| {}).await
     }
 
     /// Process with a real-time progress callback.
     /// The callback is called synchronously (not across awaits) so it is Send-safe.
-    pub async fn process_command_with_progress(
+    pub async fn process_command_with_progress<F>(
         &self,
         input: &str,
-        progress: &(dyn Fn(u8, &'static str, &str) + Send + Sync),
-    ) -> Result<CommandResult> {
+        progress: F,
+    ) -> Result<CommandResult>
+    where
+        F: Fn(u8, &'static str, &str) + Send + Sync + 'static,
+    {
         let task_id = uuid::Uuid::new_v4().to_string();
         info!("Pipeline run [{}]: {}", &task_id[..8], &input[..input.len().min(80)]);
 

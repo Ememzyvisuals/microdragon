@@ -6,8 +6,6 @@ pub mod platform;
 pub mod writer;
 
 pub use caps::{TermCaps, TermLevel};
-pub use platform::detect_platform;
-pub use writer::TermWriter;
 
 use once_cell::sync::OnceCell;
 use std::sync::Arc;

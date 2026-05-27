@@ -9,7 +9,6 @@ pub mod typewriter;
 pub mod status;
 
 pub use spinner::{Spinner, SpinnerStyle};
-pub use progress::{ProgressBar, ProgressStyle};
 pub use typewriter::Typewriter;
 pub use status::{StatusLine, StatusState};
 
