@@ -1382,8 +1382,7 @@ Item 1|100|2026-01-01|Paid
                 let result = VoiceModule::listen(duration, &provider).await?;
                 spinner.succeed("Transcribed");
                 if result.success && !result.stdout.trim().is_empty() {
-                    println!("
-  You said: "{}"", result.stdout.trim());
+                    println!("\n  You said: \"{}\"", result.stdout.trim());
                     // Send to AI
                     let ai_result = self.engine.process_command(result.stdout.trim()).await?;
                     markdown::render(&ai_result.response);

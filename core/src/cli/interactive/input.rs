@@ -5,7 +5,7 @@
 use anyhow::Result;
 use std::io::{self, Write, BufRead};
 use crossterm::{
-    event::{self, Event, KeyCode, KeyEvent, KeyModifiers, EnableBracketedPaste},
+    event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     execute,
     terminal::{enable_raw_mode, disable_raw_mode, Clear, ClearType},
     cursor::{MoveToColumn},

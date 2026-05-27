@@ -8,12 +8,10 @@ pub mod prompt;
 
 pub use history::CommandHistory;
 pub use input::LineEditor;
-pub use prompt::PromptRenderer;
 
 use std::sync::Arc;
 use anyhow::Result;
 use crossterm::{
-    event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     execute,
     style::{Color, Print, ResetColor, SetForegroundColor, Attribute, SetAttribute},
     cursor, terminal,
