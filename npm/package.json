@@ -35,8 +35,7 @@
   },
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
-    "test": "node scripts/test.js",
-    "prepublishOnly": "node scripts/build.js"
+    "test": "node scripts/test.js"
   },
   "dependencies": {
     "axios": "^1.6.0",
