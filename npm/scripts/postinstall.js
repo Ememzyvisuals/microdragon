@@ -1,41 +1,19 @@
 #!/usr/bin/env node
 // scripts/postinstall.js
-// Runs after: npm install @ememzyvisuals/microdragon
-// Downloads pre-built binary for the user's platform OR builds from source
+// Runs after: npm install -g @ememzyvisuals/microdragon
+// The binary is bundled in bin/ by the release workflow.
+// If it's missing (dev install from git), try downloading it.
 
-const { execSync, spawnSync } = require("child_process");
+const { spawnSync } = require("child_process");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
-const os = require("os");
 
-const VERSION = "0.1.0";
-const GITHUB_RELEASES = "https://github.com/ememzyvisuals/microdragon/releases/download";
-
-// ─── Platform detection ───────────────────────────────────────────────────────
-
-function getPlatformTarget() {
-  const arch = process.arch;
-  const plat = process.platform;
-  const targets = {
-    "linux-x64":   "microdragon-linux-x64",
-    "linux-arm64": "microdragon-linux-arm64",
-    "darwin-x64":  "microdragon-macos-x64",
-    "darwin-arm64":"microdragon-macos-arm64",
-    "win32-x64":   "microdragon-windows-x64.exe",
-  };
-  return targets[`${plat}-${arch}`] || null;
-}
-
-function getBinaryName() {
-  return process.platform === "win32" ? "microdragon.exe" : "microdragon";
-}
-
-function getBinDir() {
-  return path.join(__dirname, "..", "bin");
-}
-
-// ─── Chalk-free colored output (no deps during install) ──────────────────────
+// Read version dynamically from package.json — never hardcoded
+const pkg = require("../package.json");
+const VERSION = pkg.version;
+const REPO = "Ememzyvisuals/microdragon";
+const GITHUB_RELEASES = `https://github.com/${REPO}/releases/download`;
 
 const c = {
   green:  (s) => `\x1b[32m${s}\x1b[0m`,
@@ -46,135 +24,154 @@ const c = {
   dim:    (s) => `\x1b[2m${s}\x1b[0m`,
 };
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+// Platform → exact filename as bundled by release.yml and as found on GitHub Releases
+function getPlatformBinaryName() {
+  const key = `${process.platform}-${process.arch}`;
+  const map = {
+    "win32-x64":    "microdragon-windows-x64.exe",
+    "linux-x64":    "microdragon-linux-x64",
+    "linux-arm64":  "microdragon-linux-arm64",
+    "darwin-x64":   "microdragon-macos-x64",
+    "darwin-arm64": "microdragon-macos-arm64",
+  };
+  return map[key] || null;
+}
+
+function getBinDir() {
+  return path.join(__dirname, "..", "bin");
+}
 
 async function main() {
   console.log();
   console.log(c.cyan(c.bold("  ⬡ MICRODRAGON Universal AI Agent")));
-  console.log(c.dim("    by EMEMZYVISUALS DIGITALS — Emmanuel Ariyo"));
+  console.log(c.dim(`    v${VERSION} — EMEMZYVISUALS DIGITALS`));
   console.log();
 
   const binDir = getBinDir();
   if (!fs.existsSync(binDir)) fs.mkdirSync(binDir, { recursive: true });
 
-  const target = getPlatformTarget();
-  const binaryPath = path.join(binDir, getBinaryName());
+  const platformBin = getPlatformBinaryName();
 
-  // Check if binary already exists (re-install scenario)
-  if (fs.existsSync(binaryPath)) {
-    console.log(c.green("  ✓ MICRODRAGON binary already installed"));
-    await installPythonDeps();
+  if (!platformBin) {
+    console.log(c.yellow(`  ⚠ Unsupported platform: ${process.platform}-${process.arch}`));
+    console.log(c.dim("    Build from source: cd core && cargo build --release"));
+    return;
+  }
+
+  const bundledPath = path.join(binDir, platformBin);
+
+  // ── Case 1: Binary already bundled by release workflow ─────────────────────
+  if (fs.existsSync(bundledPath)) {
+    if (process.platform !== "win32") {
+      try { fs.chmodSync(bundledPath, 0o755); } catch {}
+    }
+    console.log(c.green(`  ✓ Binary ready: ${platformBin}`));
     printSuccess();
     return;
   }
 
-  // Try downloading pre-built binary
-  if (target) {
-    console.log(`  ${c.cyan("▸")} Downloading pre-built binary for ${process.platform}-${process.arch}...`);
-    const downloaded = await downloadBinary(target, binaryPath);
-    if (downloaded) {
-      if (process.platform !== "win32") fs.chmodSync(binaryPath, 0o755);
-      console.log(c.green("  ✓ Binary downloaded"));
-      await installPythonDeps();
-      printSuccess();
-      return;
+  // ── Case 2: Try downloading from GitHub Releases ───────────────────────────
+  console.log(`  ${c.cyan("▸")} Binary not bundled — downloading v${VERSION} for ${process.platform}-${process.arch}...`);
+  const url = `${GITHUB_RELEASES}/v${VERSION}/${platformBin}`;
+  console.log(c.dim(`    ${url}`));
+
+  const downloaded = await downloadFile(url, bundledPath);
+
+  if (downloaded) {
+    if (process.platform !== "win32") {
+      try { fs.chmodSync(bundledPath, 0o755); } catch {}
+    }
+    console.log(c.green(`  ✓ Downloaded: ${platformBin}`));
+    printSuccess();
+    return;
+  }
+
+  // ── Case 3: Try building from source ─────────────────────────────────────
+  console.log(c.yellow("  ▸ Download failed — checking for Rust to build from source..."));
+  const rustCheck = spawnSync("rustc", ["--version"], { stdio: "pipe" });
+
+  if (rustCheck.status === 0) {
+    const srcDir = path.join(__dirname, "..", "..", "core");
+    if (fs.existsSync(path.join(srcDir, "Cargo.toml"))) {
+      console.log("    Building... (3–5 minutes first time)");
+      try {
+        spawnSync("cargo", ["build", "--release"], { cwd: srcDir, stdio: "inherit" });
+        const builtName = process.platform === "win32" ? "microdragon.exe" : "microdragon";
+        const builtPath = path.join(srcDir, "target", "release", builtName);
+        if (fs.existsSync(builtPath)) {
+          fs.copyFileSync(builtPath, bundledPath);
+          if (process.platform !== "win32") fs.chmodSync(bundledPath, 0o755);
+          console.log(c.green("  ✓ Built from source"));
+          printSuccess();
+          return;
+        }
+      } catch (e) {
+        console.log(c.red(`  ✗ Build failed: ${e.message}`));
+      }
     }
   }
 
-  // Fallback: build from source
-  console.log(`  ${c.yellow("▸")} Pre-built binary not available, building from source...`);
-  const built = buildFromSource(binaryPath);
-  if (built) {
-    await installPythonDeps();
-    printSuccess();
+  // ── Case 4: Nothing worked ────────────────────────────────────────────────
+  console.log();
+  console.log(c.yellow("  ⚠ Could not install binary automatically."));
+  console.log();
+  console.log("  Options:");
+  console.log(`  A — Install Rust (https://rustup.rs) then run:`);
+  console.log(c.bold("      npm install -g @ememzyvisuals/microdragon"));
+  console.log();
+  console.log(`  B — Build manually:`);
+  console.log(c.bold("      cd node_modules/@ememzyvisuals/microdragon"));
+  if (process.platform === "win32") {
+    console.log(c.bold("      cd core && cargo build --release"));
+    console.log(c.bold("      copy target\\release\\microdragon.exe ..\\bin\\microdragon-windows-x64.exe"));
   } else {
-    printManualInstructions();
+    console.log(c.bold("      cd core && cargo build --release"));
+    console.log(c.bold(`      cp target/release/microdragon bin/${platformBin}`));
   }
+  console.log();
 }
 
-async function downloadBinary(target, destPath) {
-  const url = `${GITHUB_RELEASES}/v${VERSION}/${target}`;
+function downloadFile(url, destPath) {
   return new Promise((resolve) => {
     const tmpPath = destPath + ".tmp";
-    const file = fs.createWriteStream(tmpPath);
-    const request = https.get(url, { followRedirects: true }, (res) => {
-      if (res.statusCode === 302 || res.statusCode === 301) {
-        file.close();
-        // Follow redirect
-        https.get(res.headers.location, (res2) => {
-          if (res2.statusCode !== 200) { fs.unlinkSync(tmpPath); resolve(false); return; }
-          res2.pipe(file);
-          file.on("finish", () => {
-            file.close();
+
+    function fetch(url, redirects) {
+      if (redirects <= 0) return resolve(false);
+      https.get(url, (res) => {
+        if (res.statusCode === 301 || res.statusCode === 302) {
+          res.resume();
+          return fetch(res.headers.location, redirects - 1);
+        }
+        if (res.statusCode !== 200) {
+          res.resume();
+          return resolve(false);
+        }
+        const file = fs.createWriteStream(tmpPath);
+        res.pipe(file);
+        file.on("finish", () => {
+          file.close();
+          try {
             fs.renameSync(tmpPath, destPath);
             resolve(true);
-          });
-        }).on("error", () => { fs.unlinkSync(tmpPath); resolve(false); });
-        return;
-      }
-      if (res.statusCode !== 200) { file.close(); fs.unlinkSync(tmpPath); resolve(false); return; }
-      res.pipe(file);
-      file.on("finish", () => { file.close(); fs.renameSync(tmpPath, destPath); resolve(true); });
-    });
-    request.on("error", () => { try { fs.unlinkSync(tmpPath); } catch {} resolve(false); });
-    request.setTimeout(30000, () => { request.destroy(); resolve(false); });
-  });
-}
-
-function buildFromSource(binaryPath) {
-  // Check for Rust
-  const rustCheck = spawnSync("rustc", ["--version"], { stdio: "pipe" });
-  if (rustCheck.status !== 0) {
-    console.log(c.yellow("  ℹ Rust not found — skipping source build"));
-    return false;
-  }
-
-  const srcDir = path.join(__dirname, "..", "..", "core");
-  if (!fs.existsSync(path.join(srcDir, "Cargo.toml"))) {
-    console.log(c.yellow("  ℹ Rust source not found in package"));
-    return false;
-  }
-
-  try {
-    console.log("    Building... (this takes 1-3 minutes on first run)");
-    execSync("cargo build --release", { cwd: srcDir, stdio: "inherit" });
-    const builtBin = path.join(srcDir, "target", "release", getBinaryName());
-    if (fs.existsSync(builtBin)) {
-      fs.copyFileSync(builtBin, binaryPath);
-      if (process.platform !== "win32") fs.chmodSync(binaryPath, 0o755);
-      console.log(c.green("  ✓ Built from source"));
-      return true;
+          } catch {
+            resolve(false);
+          }
+        });
+        file.on("error", () => {
+          try { fs.unlinkSync(tmpPath); } catch {}
+          resolve(false);
+        });
+      }).on("error", () => {
+        try { fs.unlinkSync(tmpPath); } catch {}
+        resolve(false);
+      }).setTimeout(60000, function () {
+        this.destroy();
+        resolve(false);
+      });
     }
-  } catch (e) {
-    console.log(c.red(`  ✗ Build failed: ${e.message}`));
-  }
-  return false;
-}
 
-async function installPythonDeps() {
-  // Check for Python
-  const pythonCmd = process.platform === "win32" ? "python" : "python3";
-  const pyCheck = spawnSync(pythonCmd, ["--version"], { stdio: "pipe" });
-
-  if (pyCheck.status !== 0) {
-    console.log(c.yellow("  ℹ Python not found — skipping Python module install"));
-    console.log(c.dim("    Install Python 3.9+ for full functionality"));
-    return;
-  }
-
-  const reqFile = path.join(__dirname, "..", "..", "requirements.txt");
-  if (!fs.existsSync(reqFile)) return;
-
-  console.log(`  ${c.cyan("▸")} Installing Python modules (background)...`);
-  try {
-    // Install quietly in background — don't block npm install
-    spawnSync(pythonCmd, ["-m", "pip", "install", "-r", reqFile, "--quiet", "--no-warn-script-location"],
-      { stdio: "pipe", timeout: 120000 });
-    console.log(c.green("  ✓ Python modules installed"));
-  } catch (e) {
-    console.log(c.yellow("  ℹ Python modules not auto-installed"));
-    console.log(c.dim("    Run: pip install -r requirements.txt"));
-  }
+    fetch(url, 5);
+  });
 }
 
 function printSuccess() {
@@ -182,26 +179,14 @@ function printSuccess() {
   console.log(c.green(c.bold("  ✓ MICRODRAGON installed successfully!")));
   console.log();
   console.log(`  ${c.cyan("▸")} Run ${c.bold("microdragon setup")} to configure your AI provider`);
-  console.log(`  ${c.cyan("▸")} Run ${c.bold("microdragon")} to start the interactive session`);
+  console.log(`  ${c.cyan("▸")} Run ${c.bold("microdragon")} to launch the agent`);
   console.log(`  ${c.cyan("▸")} Run ${c.bold("microdragon --help")} for all commands`);
   console.log();
-  console.log(c.dim("  Documentation: https://github.com/ememzyvisuals/microdragon"));
-  console.log(c.dim("  © 2026 EMEMZYVISUALS DIGITALS — Emmanuel Ariyo"));
-  console.log();
-}
-
-function printManualInstructions() {
-  console.log();
-  console.log(c.yellow("  ⚠ Automatic install incomplete. Manual steps:"));
-  console.log();
-  console.log("  1. Install Rust: https://rustup.rs");
-  console.log(`  2. Build: ${c.bold("cd node_modules/@ememzyvisuals/microdragon/core && cargo build --release")}`);
-  console.log(`  3. Copy binary: ${c.bold("cp target/release/microdragon ~/.local/bin/")}`);
-  console.log(`  4. Python deps: ${c.bold("pip install -r requirements.txt")}`);
+  console.log(c.dim("  github.com/Ememzyvisuals/microdragon"));
   console.log();
 }
 
 main().catch((e) => {
+  // Never block npm install
   console.error(c.red("  Postinstall error:"), e.message);
-  // Don't exit non-zero — don't block npm install
 });
