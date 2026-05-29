@@ -28,8 +28,9 @@ use std::time::{Duration, Instant};
 use anyhow::Result;
 use crossterm::{
     event::{
-        self, DisableMouseCapture, EnableMouseCapture,
-        Event, KeyCode, KeyModifiers,
+        self, DisableBracketedPaste, DisableMouseCapture,
+        EnableBracketedPaste, EnableMouseCapture,
+        Event, KeyCode, KeyEventKind, KeyModifiers,
     },
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
@@ -261,7 +262,7 @@ pub async fn run(engine: Arc<MicrodragonEngine>) -> Result<()> {
     // Setup terminal
     enable_raw_mode()?;
     let mut stdout = std::io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    execute!(stdout, EnterAlternateScreen, EnableMouseCapture, EnableBracketedPaste)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
@@ -273,7 +274,8 @@ pub async fn run(engine: Arc<MicrodragonEngine>) -> Result<()> {
     execute!(
         terminal.backend_mut(),
         LeaveAlternateScreen,
-        DisableMouseCapture
+        DisableMouseCapture,
+        DisableBracketedPaste
     )?;
     terminal.show_cursor()?;
 
@@ -339,11 +341,30 @@ async fn run_app(
         // Draw
         terminal.draw(|f| draw(f, &mut app))?;
 
-        // Poll for keyboard events
+        // Poll for keyboard and paste events
         let timeout = tick_rate.saturating_sub(last_tick.elapsed());
         if event::poll(timeout)? {
-            if let Event::Key(key) = event::read()? {
-                handle_key(&mut app, key).await;
+            match event::read()? {
+                // Only handle Press/Repeat — ignore Release to prevent doubling
+                Event::Key(key) if key.kind == KeyEventKind::Press
+                                 || key.kind == KeyEventKind::Repeat => {
+                    handle_key(&mut app, key).await;
+                }
+                // Handle bracketed paste — append entire pasted text to input
+                Event::Paste(text) => {
+                    if app.mode != AppMode::Working {
+                        // Strip newlines from paste (keep single-line input)
+                        let clean: String = text
+                            .chars()
+                            .filter(|c| *c != '' && *c != '
+')
+                            .collect();
+                        let insert_pos = app.input_cursor;
+                        app.input.insert_str(insert_pos, &clean);
+                        app.input_cursor += clean.len();
+                    }
+                }
+                _ => {}
             }
         }
 
