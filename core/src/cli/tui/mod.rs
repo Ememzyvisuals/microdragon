@@ -356,8 +356,7 @@ async fn run_app(
                         // Strip newlines from paste (keep single-line input)
                         let clean: String = text
                             .chars()
-                            .filter(|c| *c != '' && *c != '
-')
+                            .filter(|c| *c != '\r' && *c != '\n')
                             .collect();
                         let insert_pos = app.input_cursor;
                         app.input.insert_str(insert_pos, &clean);
